@@ -1,11 +1,9 @@
-
-
-
 #include <esat/window.h>
 #include <esat/draw.h>
 #include <esat/sprite.h>
 #include <esat/input.h>
 #include <esat/time.h>
+#include <stdio.h>
 
 
 #include <esat_extra/soloud/soloud.h>
@@ -17,53 +15,59 @@
  
  esat::SpriteHandle SpriteSheet;
  esat::SpriteHandle Mapa;
- esat::SpriteHandle PacMan[4][3];
+ esat::SpriteHandle PacMan[12];
+ esat::SpriteHandle Dot[2];
 
  int auxanim=0;
- int AnimPacMan[]={0,1,2,1};
+ int AnimPacMan[4][4]={	0,1,2,1,
+ 						0,3,4,3,
+ 						0,5,6,5,
+ 						0,7,8,7	};
  int w=672/28;
  int h=744/31;
 
+
  int estados[31][14]={	1,1,1,1,1,1,1,1,1,1,1,1,1,1,
- 						1,0,0,0,0,0,0,0,0,0,0,0,0,1,
- 						1,0,1,1,1,1,0,1,1,1,1,1,0,1,
- 						1,0,1,1,1,1,0,1,1,1,1,1,0,1,
- 						1,0,1,1,1,1,0,1,1,1,1,1,0,1,
- 						1,0,0,0,0,0,0,0,0,0,0,0,0,0,
- 						1,0,1,1,1,1,0,1,1,0,1,1,1,1,
- 						1,0,1,1,1,1,0,1,1,0,1,1,1,1,
- 						1,0,0,0,0,0,0,1,1,0,0,0,0,1,
- 						1,1,1,1,1,1,0,1,1,1,1,1,0,1,
- 						1,1,1,1,1,1,0,1,1,1,1,1,0,1,
- 						1,1,1,1,1,1,0,1,1,0,0,0,0,0,
- 						1,1,1,1,1,1,0,1,1,0,1,1,1,1,
- 						1,1,1,1,1,1,0,1,1,0,1,1,1,1,
- 						0,0,0,0,0,0,0,0,0,0,1,1,0,0,
- 						1,1,1,1,1,1,0,1,1,0,1,1,1,1,
- 						1,1,1,1,1,1,0,1,1,0,1,1,1,1,
- 						1,1,1,1,1,1,0,1,1,0,0,0,0,0,
- 						1,1,1,1,1,1,0,1,1,0,1,1,1,1,
- 						1,1,1,1,1,1,0,1,1,0,1,1,1,1,
- 						1,0,0,0,0,0,0,0,0,0,0,0,0,1,
- 						1,0,1,1,1,1,0,1,1,1,1,1,0,1,
- 						1,0,1,1,1,1,0,1,1,1,1,1,0,1,
- 						1,0,0,0,1,1,0,0,0,0,0,0,0,0,
- 						1,1,1,0,1,1,0,1,1,0,1,1,1,1,
- 						1,1,1,0,1,1,0,1,1,0,1,1,1,1,
- 						1,0,0,0,0,0,0,1,1,0,0,0,0,1,
- 						1,0,1,1,1,1,1,1,1,1,1,1,0,1,
- 						1,0,1,1,1,1,1,1,1,1,1,1,0,1,
- 						1,0,0,0,0,0,0,0,0,0,0,0,0,0,
+ 						1,2,2,2,2,2,2,2,2,2,2,2,2,1,
+ 						1,2,1,1,1,1,2,1,1,1,1,1,2,1,
+ 						1,3,1,1,1,1,2,1,1,1,1,1,2,1,
+ 						1,2,1,1,1,1,2,1,1,1,1,1,2,1,
+ 						1,2,2,2,2,2,2,2,2,2,2,2,2,2,
+ 						1,2,1,1,1,1,2,1,1,2,1,1,1,1,
+ 						1,2,1,1,1,1,2,1,1,2,1,1,1,1,
+ 						1,2,2,2,2,2,2,1,1,2,2,2,2,1,
+ 						1,1,1,1,1,1,2,1,1,1,1,1,0,1,
+ 						1,1,1,1,1,1,2,1,1,1,1,1,0,1,
+ 						1,1,1,1,1,1,2,1,1,0,0,0,0,0,
+ 						1,1,1,1,1,1,2,1,1,0,1,1,1,1,
+ 						1,1,1,1,1,1,2,1,1,0,1,1,1,1,
+ 						0,0,0,0,0,0,2,0,0,0,1,1,0,0,
+ 						1,1,1,1,1,1,2,1,1,0,1,1,1,1,
+ 						1,1,1,1,1,1,2,1,1,0,1,1,1,1,
+ 						1,1,1,1,1,1,2,1,1,0,0,0,0,0,
+ 						1,1,1,1,1,1,2,1,1,0,1,1,1,1,
+ 						1,1,1,1,1,1,2,1,1,0,1,1,1,1,
+ 						1,2,2,2,2,2,2,2,2,2,2,2,2,1,
+ 						1,2,1,1,1,1,2,1,1,1,1,1,2,1,
+ 						1,2,1,1,1,1,2,1,1,1,1,1,2,1,
+ 						1,3,2,2,1,1,2,2,2,2,2,2,2,2,
+ 						1,1,1,2,1,1,2,1,1,2,1,1,1,1,
+ 						1,1,1,2,1,1,2,1,1,2,1,1,1,1,
+ 						1,2,2,2,2,2,2,1,1,2,2,2,2,1,
+ 						1,2,1,1,1,1,1,1,1,1,1,1,2,1,
+ 						1,2,1,1,1,1,1,1,1,1,1,1,2,1,
+ 						1,2,2,2,2,2,2,2,2,2,2,2,2,2,
  						1,1,1,1,1,1,1,1,1,1,1,1,1,1
  					};
  
  struct casillas{
 	int ax,ay,bx,by;
-	bool muro;
+	int tipo;
+	esat::SpriteHandle sprite;
 }casilla[31][28]; 
 
 struct PacMan{
-	int x,y;
+	int x=312,y=399;
 	int cx,cy;
 	int d=1;
 	int v=3;
@@ -73,46 +77,60 @@ struct PacMan{
  
 void CargaSprites(){
 	
-	SpriteSheet = esat::SpriteFromFile("./Recursos/Imagenes/SpriteNuevo.png");
+	SpriteSheet = esat::SpriteFromFile("./Recursos/Imagenes/PacMan.png");
 	
-	Mapa = esat::SubSprite(SpriteSheet,0,371,672,744);
+	Mapa = esat::SubSprite(SpriteSheet,0,0,672,744);
 	
-	PacMan[0][0] = esat::SubSprite(SpriteSheet,742,310,39,39);
-	PacMan[0][1] = esat::SubSprite(SpriteSheet,684,310,39,39);
-  	PacMan[0][2] = esat::SubSprite(SpriteSheet,623,310,39,39);
-  	PacMan[1][0] = esat::SubSprite(SpriteSheet,565,192,39,39);
-	PacMan[1][1] = esat::SubSprite(SpriteSheet,515,192,39,39);
-  	PacMan[1][2] = esat::SubSprite(SpriteSheet,623,310,39,39);
-  	PacMan[2][0] = esat::SubSprite(SpriteSheet,562,298,39,39);
-	PacMan[2][1] = esat::SubSprite(SpriteSheet,406,188,39,39);
-  	PacMan[2][2] = esat::SubSprite(SpriteSheet,623,310,39,39);
-  	PacMan[3][0] = esat::SubSprite(SpriteSheet,345,192,39,39);
-	PacMan[3][1] = esat::SubSprite(SpriteSheet,284,192,39,39);
-  	PacMan[3][2] = esat::SubSprite(SpriteSheet,623,310,39,39);
-	  	
+	for(int i=0;i<9;i++){
+		PacMan[i] = esat::SubSprite(SpriteSheet,682+i*44,0,42,42);
+	}
+
+	Dot[0] = esat::SubSprite(SpriteSheet,682,364,24,24);
+	Dot[1] = esat::SubSprite(SpriteSheet,709,364,24,24);
 }
 
 void InitPos(){
 	
 	for(int i=0;i<31;i++){
 		for(int j=0;j<28;j++){
-			casilla[i][j].ax=w*i;
-			casilla[i][j].ay=h*j;
-			casilla[i][j].bx=w*i + w;
-			casilla[i][j].by=h*j + h;
+			casilla[i][j].ax=w*j;
+			casilla[i][j].ay=h*i;
+			casilla[i][j].bx=w*j + w;
+			casilla[i][j].by=h*i + h;
 		}
 	}
 }
 
-void InitMuros(){
+void DrawMatriz(){
+
+	for(int j=0;j<28;j++){
+		esat::DrawLine(j*w,0,j*w,744);
+	}
+	for(int i=0;i<31;i++){
+		esat::DrawLine(0,i*h,672,i*h);
+	}
+	
+}
+
+void InitCasillas(){
 
 	for(int i=0;i<31;i++){
 		for(int j=0;j<14;j++){
-			casilla[i][j].muro=estados[i][j];
-			casilla[i][28-j].muro=estados[i][j];
+			casilla[i][j].tipo=estados[i][j];
+			casilla[i][27-j].tipo=estados[i][j];
+			
+			if(estados[i][j]==2){
+				printf("hola2");
+				casilla[i][j].sprite=Dot[0];
+				casilla[i][27-j].sprite=Dot[0];
+			}else if(estados[i][j]==3){
+				printf("hola3");
+				casilla[i][j].sprite=Dot[1];
+				casilla[i][27-j].sprite=Dot[1];
+				casilla[i][j].sprite = arrayspritesderecha[casilla[i][j].tipomuro];
+			}
 		}
 	}
-
 }
 
 void PacManInput(){
@@ -149,14 +167,29 @@ void PacManMov(){
 
 void PacManAnim(){
 
-	pacman.sprite = PacMan[pacman.d-1][AnimPacMan[auxanim%4]];
-	auxanim++;
+	if(auxanim==4)
+		auxanim=0;
+	else
+		pacman.sprite=PacMan[AnimPacMan[pacman.d-1][auxanim]];
 
+	auxanim++;
+}
+
+void DrawDots(){
+
+	for(int i=0;i<31;i++){
+		for(int j=0;j<28;j++){
+			if(casilla[i][j].tipo == 2 || casilla[i][j].tipo == 3)
+				esat::DrawSprite(casilla[i][j].sprite,casilla[i][j].ax,casilla[i][j].ay);
+		}
+	}
 }
 
 void MuestraPacMan(){
 
 	esat::DrawSprite(pacman.sprite,pacman.x,pacman.y);
+	DrawDots();
+
 }
 
 bool Col(int x, int y, int ax, int ay, int bx, int by){
@@ -167,8 +200,6 @@ bool Col(int x, int y, int ax, int ay, int bx, int by){
 		return false;
 	else
 		return true; 
-
-
 }
 
 void ColMuros(){
@@ -178,9 +209,9 @@ void ColMuros(){
 int esat::main(int argc, char **argv) {
  
   double current_time,last_time;
-  unsigned char fps=20;
+  unsigned char fps=30;
 
-   int pacmananim=1;
+  int pacmananim=1;
 
 
 
@@ -194,6 +225,8 @@ int esat::main(int argc, char **argv) {
   WindowSetMouseVisibility(true);
   CargaSprites();
   pacman.sprite = PacMan[1];
+  InitPos();
+  InitCasillas();
   
 
   while(esat::WindowIsOpened() && !esat::IsSpecialKeyDown(esat::kSpecialKey_Escape)) {
@@ -207,6 +240,8 @@ int esat::main(int argc, char **argv) {
     PacManMov();
 
 	esat::DrawSprite(Mapa,0,0);
+	esat::DrawSetStrokeColor(255,255,255);
+	DrawMatriz();
 	MuestraPacMan();
 
 	

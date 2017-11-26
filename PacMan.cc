@@ -71,20 +71,20 @@ struct PacMan{
 	int cx1,cy1,cx2,cy2;
 	int d=1;
 	int v=1;
-	int casillaX,casillaY;
+	int casillaF,casillaC;
 	int anim=1;
 	bool stuck=false;
 	esat::SpriteHandle sprite;
 }pacman;                      
  
  void InitPacMan(){
-	 pacman.casillaX = 13;
-	 pacman.casillaY = 17;
-	 pacman.cx1 = pacman.casillaX*w + 12;
-	 pacman.cy1 = pacman.casillaY*h;
-	 pacman.cx2 = pacman.cx1 + 24;
-	 pacman.cy2 = pacman.cy1 + 24;
-	 pacman.x = pacman.cx1 - 12;
+	 pacman.casillaC = 13;
+	 pacman.casillaF = 17;
+	 pacman.cx1 = pacman.casillaC*w;
+	 pacman.cy1 = pacman.casillaF*h;
+	 pacman.cx2 = pacman.cx1 + w;
+	 pacman.cy2 = pacman.cy1 + h;
+	 pacman.x = pacman.cx1 - 10;
 	 pacman.y = pacman.cy1 - 10;
 	 
  }
@@ -141,11 +141,11 @@ void InitCasillas(){
 			casilla[i][27-j].tipo=estados[i][j];
 			
 			if(estados[i][j]==2){
-				printf("hola2");
+				
 				casilla[i][j].sprite=Dot[0];
 				casilla[i][27-j].sprite=Dot[0];
 			}else if(estados[i][j]==3){
-				printf("hola3");
+				
 				casilla[i][j].sprite=Dot[1];
 				casilla[i][27-j].sprite=Dot[1];
 			
@@ -156,22 +156,32 @@ void InitCasillas(){
 
 void PacManInput(){
 	
-	if(esat::IsSpecialKeyDown(esat::kSpecialKey_Right))
-		pacman.d = 1;
-	else if(esat::IsSpecialKeyDown(esat::kSpecialKey_Left))
-		pacman.d = 2;
-	else if(esat::IsSpecialKeyDown(esat::kSpecialKey_Up))
-		pacman.d = 3;
-	else if(esat::IsSpecialKeyDown(esat::kSpecialKey_Down))
-		pacman.d = 4;
-
+	if(esat::IsSpecialKeyPressed(esat::kSpecialKey_Right)){
+		if(pacman.cy1==casilla[pacman.casillaF][pacman.casillaC+1].ay)
+			pacman.d = 1;
+	}
+	else if(esat::IsSpecialKeyPressed(esat::kSpecialKey_Left)){
+		printf("izquierda: %d , %d\n",pacman.cy1,casilla[pacman.casillaF][pacman.casillaC-1].ay);
+		if(pacman.cy1==casilla[pacman.casillaF][pacman.casillaC-1].ay)
+			pacman.d = 2;
+	}
+	else if(esat::IsSpecialKeyPressed(esat::kSpecialKey_Up)){
+		printf("arriba: %d , %d\n",pacman.cx1,casilla[pacman.casillaF+1][pacman.casillaC].ax);
+		if(pacman.cx1==casilla[pacman.casillaF+1][pacman.casillaC].ax)
+			pacman.d = 3;
+	}
+	else if(esat::IsSpecialKeyPressed(esat::kSpecialKey_Down)){
+		printf("abajo: %d , %d\n",pacman.cx1,casilla[pacman.casillaF-1][pacman.casillaC].ax);
+		if(pacman.cx1==casilla[pacman.casillaF-1][pacman.casillaC].ax)
+			pacman.d = 4;
+	}
 }
 
 void UpdatePacManCasilla(){
 	
-	pacman.casillaX = (pacman.cx1+w/2)/w;
-	pacman.casillaY = (pacman.cy1+h/2)/h;
-	printf("%d, %d\n",pacman.casillaX,pacman.casillaY);
+	pacman.casillaC = (pacman.cx1+w/2)/w;
+	pacman.casillaF = (pacman.cy1+h/2)/h;
+	printf("%d, %d\n",pacman.casillaF,pacman.casillaC);
 	
 }
 
@@ -194,29 +204,23 @@ void PacManMov(){
 	switch (pacman.d){
 		
 		case 1:
-		printf("(%d,%d),(%d,%d)\n",pacman.cx1+pacman.v,pacman.cy1,pacman.cx2+pacman.v,pacman.cy2);
-		printf("(%d,%d)->(%d,%d),(%d,%d)\n", pacman.casillaX+1, pacman.casillaY, casilla[pacman.casillaX+1][pacman.casillaY].ax,casilla[pacman.casillaX+1][pacman.casillaY].ay,
-			casilla[pacman.casillaX+1][pacman.casillaY].bx,casilla[pacman.casillaX+1][pacman.casillaY].by);
-			if(Col(pacman.cx1+pacman.v,pacman.cy1,pacman.cx2+pacman.v,pacman.cy2,
-			casilla[pacman.casillaX+1][pacman.casillaY].ax,casilla[pacman.casillaX+1][pacman.casillaY].ay,
-			casilla[pacman.casillaX+1][pacman.casillaY].bx,casilla[pacman.casillaX+1][pacman.casillaY].by) 
-			&& casilla[pacman.casillaX+1][pacman.casillaY].tipo==1){
-				pacman.stuck=true;
-			}else{
-				pacman.x+=pacman.v;
-				pacman.cx1+=pacman.v;
-				pacman.cx2+=pacman.v;
-			}
+			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
+				casilla[pacman.casillaF][pacman.casillaC+1].ax, casilla[pacman.casillaF][pacman.casillaC+1].ay, 
+				casilla[pacman.casillaF][pacman.casillaC+1].bx, casilla[pacman.casillaF][pacman.casillaC+1].by) 
+				&& casilla[pacman.casillaF][pacman.casillaC+1].tipo==1){
+					
+				}else{
+					pacman.x+=pacman.v;
+					pacman.cx1+=pacman.v;
+					pacman.cx2+=pacman.v;
+				}
 			break;
 		case 2:
-			printf("(%d,%d),(%d,%d)\n",pacman.cx1-pacman.v,pacman.cy1,pacman.cx2-pacman.v,pacman.cy2);
-		printf("(%d,%d)->(%d,%d),(%d,%d)\n", pacman.casillaX-1, pacman.casillaY, casilla[pacman.casillaX-1][pacman.casillaY].ax,casilla[pacman.casillaX-1][pacman.casillaY].ay,
-			casilla[pacman.casillaX-1][pacman.casillaY].ax,casilla[pacman.casillaX-1][pacman.casillaY].ay);
-			if(Col(pacman.cx1-pacman.v,pacman.cy1,pacman.cx2-pacman.v,pacman.cy2,
-			casilla[pacman.casillaX-1][pacman.casillaY].ax,casilla[pacman.casillaX-1][pacman.casillaY].ay,
-			casilla[pacman.casillaX-1][pacman.casillaY].ax,casilla[pacman.casillaX-1][pacman.casillaY].ay) 
-			&& casilla[pacman.casillaX-1][pacman.casillaY].tipo==1){
-				pacman.stuck=true;
+			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
+				casilla[pacman.casillaF][pacman.casillaC-1].ax, casilla[pacman.casillaF][pacman.casillaC-1].ay, 
+				casilla[pacman.casillaF][pacman.casillaC-1].bx, casilla[pacman.casillaF][pacman.casillaC-1].by) 
+				&& casilla[pacman.casillaF][pacman.casillaC-1].tipo==1){
+				
 			}else{
 				pacman.x-=pacman.v;
 				pacman.cx1-=pacman.v;
@@ -224,14 +228,11 @@ void PacManMov(){
 			}
 			break;
 		case 3:
-		printf("(%d,%d),(%d,%d)\n",pacman.cx1,pacman.cy1-pacman.v,pacman.cx2,pacman.cy2-pacman.v);
-		printf("(%d,%d)->(%d,%d),(%d,%d)\n", pacman.casillaX, pacman.casillaY-1, casilla[pacman.casillaX][pacman.casillaY-1].ax,casilla[pacman.casillaX][pacman.casillaY-1].ay,
-			casilla[pacman.casillaX][pacman.casillaY-1].ax,casilla[pacman.casillaX][pacman.casillaY-1].ay);
-			if(Col(pacman.cx1,pacman.cy1-pacman.v,pacman.cx2,pacman.cy2-pacman.v,
-			casilla[pacman.casillaX][pacman.casillaY-1].ax,casilla[pacman.casillaX][pacman.casillaY-1].ay,
-			casilla[pacman.casillaX][pacman.casillaY-1].ax,casilla[pacman.casillaX][pacman.casillaY-1].ay) 
-			&& casilla[pacman.casillaX][pacman.casillaY-1].tipo==1){
-				pacman.stuck=true;
+			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
+				casilla[pacman.casillaF-1][pacman.casillaC].ax, casilla[pacman.casillaF-1][pacman.casillaC].ay, 
+				casilla[pacman.casillaF-1][pacman.casillaC].bx, casilla[pacman.casillaF-1][pacman.casillaC].by) 
+				&& casilla[pacman.casillaF-1][pacman.casillaC].tipo==1){
+				
 			}else{
 				pacman.y-=pacman.v;
 				pacman.cy1-=pacman.v;
@@ -239,21 +240,54 @@ void PacManMov(){
 			}
 			break;
 		case 4:
-		printf("(%d,%d),(%d,%d)\n",pacman.cx1,pacman.cy1+pacman.v,pacman.cx2,pacman.cy2+pacman.v);
-		printf("(%d,%d)->(%d,%d),(%d,%d)\n",pacman.casillaX, pacman.casillaY+1, casilla[pacman.casillaX][pacman.casillaY+1].ax,casilla[pacman.casillaX][pacman.casillaY+1].ay,
-			casilla[pacman.casillaX][pacman.casillaY+1].ax,casilla[pacman.casillaX][pacman.casillaY+1].ay);
-			if(Col(pacman.cx1,pacman.cy1+pacman.v,pacman.cx2,pacman.cy2+pacman.v,
-			casilla[pacman.casillaX][pacman.casillaY+1].ax,casilla[pacman.casillaX][pacman.casillaY+1].ay,
-			casilla[pacman.casillaX][pacman.casillaY+1].ax,casilla[pacman.casillaX][pacman.casillaY+1].ay) 
-			&& casilla[pacman.casillaX][pacman.casillaY+1].tipo==1){
-				pacman.stuck=true;
+			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
+				casilla[pacman.casillaF+1][pacman.casillaC].ax, casilla[pacman.casillaF+1][pacman.casillaC].ay, 
+				casilla[pacman.casillaF+1][pacman.casillaC].bx, casilla[pacman.casillaF+1][pacman.casillaC].by) 
+				&& casilla[pacman.casillaF+1][pacman.casillaC].tipo==1){
+				
 			}else{
 				pacman.y+=pacman.v;
 				pacman.cy1+=pacman.v;
 				pacman.cy2+=pacman.v;
 			}
+		
 			break;
 	}
+}
+
+void PacManDots(){
+
+		switch (pacman.d){
+		
+		case 1:
+			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
+				casilla[pacman.casillaF][pacman.casillaC+1].ax, casilla[pacman.casillaF][pacman.casillaC+1].ay, 
+				casilla[pacman.casillaF][pacman.casillaC+1].bx, casilla[pacman.casillaF][pacman.casillaC+1].by) 
+				&& (casilla[pacman.casillaF][pacman.casillaC+1].tipo==2 || casilla[pacman.casillaF][pacman.casillaC+1].tipo==3))
+					casilla[pacman.casillaF][pacman.casillaC+1].tipo=0;
+			break;
+		case 2:
+			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
+				casilla[pacman.casillaF][pacman.casillaC-1].ax, casilla[pacman.casillaF][pacman.casillaC-1].ay, 
+				casilla[pacman.casillaF][pacman.casillaC-1].bx, casilla[pacman.casillaF][pacman.casillaC-1].by) 
+				&& (casilla[pacman.casillaF][pacman.casillaC-1].tipo==2 || casilla[pacman.casillaF][pacman.casillaC-1].tipo==3))
+					casilla[pacman.casillaF][pacman.casillaC-1].tipo=0;
+			
+			break;
+		case 3:
+			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
+				casilla[pacman.casillaF-1][pacman.casillaC].ax, casilla[pacman.casillaF-1][pacman.casillaC].ay, 
+				casilla[pacman.casillaF-1][pacman.casillaC].bx, casilla[pacman.casillaF-1][pacman.casillaC].by) 
+				&& (casilla[pacman.casillaF-1][pacman.casillaC].tipo==2 || casilla[pacman.casillaF-1][pacman.casillaC].tipo==3))
+					casilla[pacman.casillaF-1][pacman.casillaC].tipo=0;
+			break;
+		case 4:
+			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
+				casilla[pacman.casillaF+1][pacman.casillaC].ax, casilla[pacman.casillaF+1][pacman.casillaC].ay, 
+				casilla[pacman.casillaF+1][pacman.casillaC].bx, casilla[pacman.casillaF+1][pacman.casillaC].by) 
+				&& (casilla[pacman.casillaF+1][pacman.casillaC].tipo==2 || casilla[pacman.casillaF+1][pacman.casillaC].tipo==3))
+					casilla[pacman.casillaF+1][pacman.casillaC].tipo=0;
+			}
 }
 
 void PacManAnim(){
@@ -283,6 +317,15 @@ void MuestraPacMan(){
 
 }
 
+void DrawWalls(){
+	for(int i=0;i<31;i++){
+		for(int j=0;j<28;j++){
+			if(casilla[i][j].tipo==1)
+				esat::DrawLine(casilla[i][j].ax,casilla[i][j].ay,casilla[i][j].bx,casilla[i][j].by);
+		}
+	}
+}
+
 
 
 /*void ColMuros(){
@@ -292,7 +335,7 @@ void MuestraPacMan(){
 int esat::main(int argc, char **argv) {
  
   double current_time,last_time;
-  unsigned char fps=30;
+  unsigned char fps=60;
 
   int pacmananim=1;
 
@@ -314,7 +357,7 @@ int esat::main(int argc, char **argv) {
   
   for(int i=0;i<31;i++){
 	for(int j=0;j<28;j++){
-		printf("%02d", casilla[i][j].tipo);		
+		printf("%d", casilla[i][j].tipo);		
 	}
 	printf("\n");
   }
@@ -329,7 +372,7 @@ int esat::main(int argc, char **argv) {
 	PacManAnim();
     PacManInput();
 	UpdatePacManCasilla();
-    PacManMov();
+	PacManMov();
 	
 
 	esat::DrawSprite(Mapa,0,0);
@@ -337,7 +380,12 @@ int esat::main(int argc, char **argv) {
 	DrawMatriz();
 	MuestraPacMan();
 	DrawPacManCol();
+	PacManDots();
 
+
+	DrawWalls();
+
+	printf("(%d,%d)\n",pacman.cx1,pacman.cy1);
 	
     
 

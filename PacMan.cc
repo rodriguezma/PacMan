@@ -15,10 +15,10 @@
  
  esat::SpriteHandle SpriteSheet;
  esat::SpriteHandle Mapa;
- esat::SpriteHandle PacMan[12];
+ esat::SpriteHandle PacMan[9];
  esat::SpriteHandle Dot[2];
 
- int auxanim=0;
+ //int auxanim=0;
  int AnimPacMan[4][4]={	0,1,2,1,
  						0,3,4,3,
  						0,5,6,5,
@@ -72,10 +72,23 @@ struct PacMan{
 	int d=1;
 	int v=1;
 	int casillaF,casillaC;
-	int anim=1;
+	int anim=0;
 	bool stuck=false;
 	esat::SpriteHandle sprite;
-}pacman;                      
+}pacman;  
+
+struct Fantasmas{
+	int x,y;
+	int cx1,cy1,cx2,cy2;
+	int d=1;
+	int v=1;
+	int casillaF,casillaC;
+	int anim=0;
+	bool stuck=false;
+	esat::SpriteHandle sprite;
+}fantasma[4];   
+
+                 
  
  void InitPacMan(){
 	 pacman.casillaC = 13;
@@ -86,6 +99,20 @@ struct PacMan{
 	 pacman.cy2 = pacman.cy1 + h;
 	 pacman.x = pacman.cx1 - 10;
 	 pacman.y = pacman.cy1 - 10;
+	 
+ }
+ 
+ void InitFantasmas(){
+	 
+	 fantasma[0].cx1 = 288;
+	 fantasma[0].cy1 = 336;
+	 fantasma[1].cx1 = 360;
+	 fantasma[1].cy1 = 336;
+	 fantasma[2].cx1 = 324;
+	 fantasma[2].cy1 = 321;
+	 fantasma[3].cx1 = 324;
+	 fantasma[3].cy1 = 
+	 
 	 
  }
  
@@ -197,6 +224,88 @@ void UpdatePacManCasilla(){
 	}
 		 
 }
+
+bool ColSwitch(int d){
+	switch (d){
+		case 1:
+			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
+				casilla[pacman.casillaF][pacman.casillaC+1].ax, casilla[pacman.casillaF][pacman.casillaC+1].ay, 
+				casilla[pacman.casillaF][pacman.casillaC+1].bx, casilla[pacman.casillaF][pacman.casillaC+1].by)){
+					return true;
+			}else{
+				return false;
+			}
+			break;
+		case 2:
+			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
+				casilla[pacman.casillaF][pacman.casillaC-1].ax, casilla[pacman.casillaF][pacman.casillaC-1].ay, 
+				casilla[pacman.casillaF][pacman.casillaC-1].bx, casilla[pacman.casillaF][pacman.casillaC-1].by)){
+					return true;
+			}else{
+				return false;
+			}
+			break;
+		case 3:
+			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
+				casilla[pacman.casillaF-1][pacman.casillaC].ax, casilla[pacman.casillaF-1][pacman.casillaC].ay, 
+				casilla[pacman.casillaF-1][pacman.casillaC].bx, casilla[pacman.casillaF-1][pacman.casillaC].by)){
+					return true;
+			}else{
+				return false;
+			}
+			break;
+		case 4:
+			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
+				casilla[pacman.casillaF+1][pacman.casillaC].ax, casilla[pacman.casillaF+1][pacman.casillaC].ay, 
+				casilla[pacman.casillaF+1][pacman.casillaC].bx, casilla[pacman.casillaF+1][pacman.casillaC].by)){
+					return true;
+			}else{
+				return false;
+			}
+		break;
+	}
+}
+
+bool ColSwitch(int d, int a){
+	switch (d){
+		case 1:
+			if(Col(pacman.cx1 + a, pacman.cy1 + a, pacman.cx2 - a, pacman.cy2 - a, 
+				casilla[pacman.casillaF][pacman.casillaC+1].ax, casilla[pacman.casillaF][pacman.casillaC+1].ay, 
+				casilla[pacman.casillaF][pacman.casillaC+1].bx, casilla[pacman.casillaF][pacman.casillaC+1].by)){
+					return true;
+			}else{
+				return false;
+			}
+			break;
+		case 2:
+			if(Col(pacman.cx1 + a, pacman.cy1 + a, pacman.cx2 - a, pacman.cy2 - a, 
+				casilla[pacman.casillaF][pacman.casillaC-1].ax, casilla[pacman.casillaF][pacman.casillaC-1].ay, 
+				casilla[pacman.casillaF][pacman.casillaC-1].bx, casilla[pacman.casillaF][pacman.casillaC-1].by)){
+					return true;
+			}else{
+				return false;
+			}
+			break;
+		case 3:
+			if(Col(pacman.cx1 + a, pacman.cy1 + a, pacman.cx2 - a, pacman.cy2 - a, 
+				casilla[pacman.casillaF-1][pacman.casillaC].ax, casilla[pacman.casillaF-1][pacman.casillaC].ay, 
+				casilla[pacman.casillaF-1][pacman.casillaC].bx, casilla[pacman.casillaF-1][pacman.casillaC].by)){
+					return true;
+			}else{
+				return false;
+			}
+			break;
+		case 4:
+			if(Col(pacman.cx1 + a, pacman.cy1 + a, pacman.cx2 - a, pacman.cy2 - a, 
+				casilla[pacman.casillaF+1][pacman.casillaC].ax, casilla[pacman.casillaF+1][pacman.casillaC].ay, 
+				casilla[pacman.casillaF+1][pacman.casillaC].bx, casilla[pacman.casillaF+1][pacman.casillaC].by)){
+					return true;
+			}else{
+				return false;
+			}
+		break;
+	}
+}
  
 
 void PacManMov(){
@@ -204,22 +313,16 @@ void PacManMov(){
 	switch (pacman.d){
 		
 		case 1:
-			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
-				casilla[pacman.casillaF][pacman.casillaC+1].ax, casilla[pacman.casillaF][pacman.casillaC+1].ay, 
-				casilla[pacman.casillaF][pacman.casillaC+1].bx, casilla[pacman.casillaF][pacman.casillaC+1].by) 
-				&& casilla[pacman.casillaF][pacman.casillaC+1].tipo==1){
-					
-				}else{
-					pacman.x+=pacman.v;
-					pacman.cx1+=pacman.v;
-					pacman.cx2+=pacman.v;
-				}
+			if(ColSwitch(pacman.d) && casilla[pacman.casillaF][pacman.casillaC+1].tipo==1){
+			
+			}else{
+				pacman.x+=pacman.v;
+				pacman.cx1+=pacman.v;
+				pacman.cx2+=pacman.v;
+			}
 			break;
 		case 2:
-			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
-				casilla[pacman.casillaF][pacman.casillaC-1].ax, casilla[pacman.casillaF][pacman.casillaC-1].ay, 
-				casilla[pacman.casillaF][pacman.casillaC-1].bx, casilla[pacman.casillaF][pacman.casillaC-1].by) 
-				&& casilla[pacman.casillaF][pacman.casillaC-1].tipo==1){
+			if(ColSwitch(pacman.d) && casilla[pacman.casillaF][pacman.casillaC-1].tipo==1){
 				
 			}else{
 				pacman.x-=pacman.v;
@@ -228,10 +331,7 @@ void PacManMov(){
 			}
 			break;
 		case 3:
-			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
-				casilla[pacman.casillaF-1][pacman.casillaC].ax, casilla[pacman.casillaF-1][pacman.casillaC].ay, 
-				casilla[pacman.casillaF-1][pacman.casillaC].bx, casilla[pacman.casillaF-1][pacman.casillaC].by) 
-				&& casilla[pacman.casillaF-1][pacman.casillaC].tipo==1){
+			if(ColSwitch(pacman.d) && casilla[pacman.casillaF-1][pacman.casillaC].tipo==1){
 				
 			}else{
 				pacman.y-=pacman.v;
@@ -240,10 +340,7 @@ void PacManMov(){
 			}
 			break;
 		case 4:
-			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
-				casilla[pacman.casillaF+1][pacman.casillaC].ax, casilla[pacman.casillaF+1][pacman.casillaC].ay, 
-				casilla[pacman.casillaF+1][pacman.casillaC].bx, casilla[pacman.casillaF+1][pacman.casillaC].by) 
-				&& casilla[pacman.casillaF+1][pacman.casillaC].tipo==1){
+			if(ColSwitch(pacman.d) && casilla[pacman.casillaF+1][pacman.casillaC].tipo==1){
 				
 			}else{
 				pacman.y+=pacman.v;
@@ -260,44 +357,32 @@ void PacManDots(){
 		switch (pacman.d){
 		
 		case 1:
-			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
-				casilla[pacman.casillaF][pacman.casillaC+1].ax, casilla[pacman.casillaF][pacman.casillaC+1].ay, 
-				casilla[pacman.casillaF][pacman.casillaC+1].bx, casilla[pacman.casillaF][pacman.casillaC+1].by) 
-				&& (casilla[pacman.casillaF][pacman.casillaC+1].tipo==2 || casilla[pacman.casillaF][pacman.casillaC+1].tipo==3))
+			if(ColSwitch(pacman.d,12) && (casilla[pacman.casillaF][pacman.casillaC+1].tipo==2 || casilla[pacman.casillaF][pacman.casillaC+1].tipo==3))
 					casilla[pacman.casillaF][pacman.casillaC+1].tipo=0;
 			break;
 		case 2:
-			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
-				casilla[pacman.casillaF][pacman.casillaC-1].ax, casilla[pacman.casillaF][pacman.casillaC-1].ay, 
-				casilla[pacman.casillaF][pacman.casillaC-1].bx, casilla[pacman.casillaF][pacman.casillaC-1].by) 
-				&& (casilla[pacman.casillaF][pacman.casillaC-1].tipo==2 || casilla[pacman.casillaF][pacman.casillaC-1].tipo==3))
+			if(ColSwitch(pacman.d,12) && (casilla[pacman.casillaF][pacman.casillaC-1].tipo==2 || casilla[pacman.casillaF][pacman.casillaC-1].tipo==3))
 					casilla[pacman.casillaF][pacman.casillaC-1].tipo=0;
 			
 			break;
 		case 3:
-			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
-				casilla[pacman.casillaF-1][pacman.casillaC].ax, casilla[pacman.casillaF-1][pacman.casillaC].ay, 
-				casilla[pacman.casillaF-1][pacman.casillaC].bx, casilla[pacman.casillaF-1][pacman.casillaC].by) 
-				&& (casilla[pacman.casillaF-1][pacman.casillaC].tipo==2 || casilla[pacman.casillaF-1][pacman.casillaC].tipo==3))
+			if(ColSwitch(pacman.d,12) && (casilla[pacman.casillaF-1][pacman.casillaC].tipo==2 || casilla[pacman.casillaF-1][pacman.casillaC].tipo==3))
 					casilla[pacman.casillaF-1][pacman.casillaC].tipo=0;
 			break;
 		case 4:
-			if(Col(pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2, 
-				casilla[pacman.casillaF+1][pacman.casillaC].ax, casilla[pacman.casillaF+1][pacman.casillaC].ay, 
-				casilla[pacman.casillaF+1][pacman.casillaC].bx, casilla[pacman.casillaF+1][pacman.casillaC].by) 
-				&& (casilla[pacman.casillaF+1][pacman.casillaC].tipo==2 || casilla[pacman.casillaF+1][pacman.casillaC].tipo==3))
+			if(ColSwitch(pacman.d,12) && (casilla[pacman.casillaF+1][pacman.casillaC].tipo==2 || casilla[pacman.casillaF+1][pacman.casillaC].tipo==3))
 					casilla[pacman.casillaF+1][pacman.casillaC].tipo=0;
 			}
 }
 
 void PacManAnim(){
 
-	if(auxanim==4)
-		auxanim=0;
+	if(pacman.anim==4)
+		pacman.anim=0;
 	else
-		pacman.sprite=PacMan[AnimPacMan[pacman.d-1][auxanim]];
+		pacman.sprite=PacMan[AnimPacMan[pacman.d-1][pacman.anim]];
 
-	auxanim++;
+	pacman.anim++;
 }
 
 void DrawDots(){
@@ -312,8 +397,9 @@ void DrawDots(){
 
 void MuestraPacMan(){
 
-	esat::DrawSprite(pacman.sprite,pacman.x,pacman.y);
 	DrawDots();
+	esat::DrawSprite(pacman.sprite,pacman.x,pacman.y);
+	
 
 }
 

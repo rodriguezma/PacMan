@@ -91,6 +91,7 @@ struct Fantasmas{
 	int anim=0;
 	bool stuck=false;
 	esat::SpriteHandle sprite;
+	bool vivo=true;
 }fantasma[4];   
 
                  
@@ -140,7 +141,8 @@ struct Fantasmas{
 
  void MostrarFantasmas(){
  	for(int i=0;i<4;i++){
- 		esat::DrawSprite(fantasma[i].sprite,fantasma[i].x,fantasma[i].y);
+ 		if(fantasma[i].vivo)
+ 			esat::DrawSprite(fantasma[i].sprite,fantasma[i].x,fantasma[i].y);
  	}
  }
  
@@ -305,6 +307,20 @@ bool ColSwitch(int d){
 			}
 		break;
 	}
+}
+
+void ColPacManFantasmas(){
+
+	for(int i=0;i<4;i++){
+
+		if(Col(fantasma[i].cx1, fantasma[i].cy1, fantasma[i].cx2, fantasma[i].cy2,
+			pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2))
+
+			fantasma[i].vivo=false;
+
+
+	}
+
 }
 
 bool ColSwitchFantasma(int i, int d){
@@ -648,7 +664,7 @@ int esat::main(int argc, char **argv) {
 	FantasmasDir();	
 	FantasmasMov();	
 
-	
+	ColPacManFantasmas();
 
 	esat::DrawSprite(Mapa,0,0);
 	esat::DrawSetStrokeColor(255,255,255);

@@ -30,6 +30,9 @@
  int frames=0;
  int framesAnim=0;
 
+ bool Encontrado=0;
+ int IndiceBusqueda=0;
+
 
 
  int estados[31][14]={	1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -93,6 +96,7 @@ struct Fantasmas{
 	esat::SpriteHandle sprite;
 	bool vivo=true;
 	int mMov[2];
+	int DeathDirs[100];
 }fantasma[4];   
 
                  
@@ -142,7 +146,7 @@ struct Fantasmas{
 
  void MostrarFantasmas(){
  	for(int i=0;i<4;i++){
- 		if(fantasma[i].vivo)
+ 		//if(fantasma[i].vivo)
  			esat::DrawSprite(fantasma[i].sprite,fantasma[i].x,fantasma[i].y);
  	}
  }
@@ -218,6 +222,20 @@ void InitCasillas(){
 	}
 }
 
+int GetCuadrante(int a, int b){
+	
+	if (a<14 && b<13)
+		return 1;
+	else if(a>=14 && b<13)
+		return 2;
+	else if(a>=14 && b>=13)
+		return 3;
+	else if(a<14 && b>=13)
+		return 4;
+
+}
+
+
 void PacManInput(){
 	
 	if(esat::IsSpecialKeyPressed(esat::kSpecialKey_Right)){
@@ -225,17 +243,17 @@ void PacManInput(){
 			pacman.d = 1;
 	}
 	else if(esat::IsSpecialKeyPressed(esat::kSpecialKey_Left)){
-		printf("izquierda: %d , %d\n",pacman.cy1,casilla[pacman.casillaF][pacman.casillaC-1].ay);
+		//printf("izquierda: %d , %d\n",pacman.cy1,casilla[pacman.casillaF][pacman.casillaC-1].ay);
 		if(pacman.cy1==casilla[pacman.casillaF][pacman.casillaC-1].ay)
 			pacman.d = 2;
 	}
 	else if(esat::IsSpecialKeyPressed(esat::kSpecialKey_Up)){
-		printf("arriba: %d , %d\n",pacman.cx1,casilla[pacman.casillaF+1][pacman.casillaC].ax);
+		//printf("arriba: %d , %d\n",pacman.cx1,casilla[pacman.casillaF+1][pacman.casillaC].ax);
 		if(pacman.cx1==casilla[pacman.casillaF+1][pacman.casillaC].ax)
 			pacman.d = 3;
 	}
 	else if(esat::IsSpecialKeyPressed(esat::kSpecialKey_Down)){
-		printf("abajo: %d , %d\n",pacman.cx1,casilla[pacman.casillaF-1][pacman.casillaC].ax);
+		//printf("abajo: %d , %d\n",pacman.cx1,casilla[pacman.casillaF-1][pacman.casillaC].ax);
 		if(pacman.cx1==casilla[pacman.casillaF-1][pacman.casillaC].ax)
 			pacman.d = 4;
 	}
@@ -245,7 +263,7 @@ void UpdatePacManCasilla(){
 	
 	pacman.casillaC = (pacman.cx1+w/2)/w;
 	pacman.casillaF = (pacman.cy1+h/2)/h;
-	printf("%d, %d\n",pacman.casillaF,pacman.casillaC);
+	//printf("%d, %d\n",pacman.casillaF,pacman.casillaC);
 	
 }
 
@@ -263,7 +281,7 @@ void UpdateFantasmasCasilla(){
 	else if(a2y < b1y || a1y > b2y)
 		return false;
 	else{
-		printf("col \n");
+		//printf("col \n");
 		return true;
 	}
 		 
@@ -310,25 +328,122 @@ bool ColSwitch(int d){
 	}
 }
 
+void AjusteCasilla(int i){
+	fantasma[i].cx1=casilla[fantasma[i].casillaF][fantasma[i].casillaC].ax;
+	fantasma[i].cy1=casilla[fantasma[i].casillaF][fantasma[i].casillaC].ay;
+	fantasma[i].cx2=casilla[fantasma[i].casillaF][fantasma[i].casillaC].bx;
+	fantasma[i].cy2=casilla[fantasma[i].casillaF][fantasma[i].casillaC].bx;
+	fantasma[i].x=fantasma[i].cx1-10;
+	fantasma[i].y=fantasma[i].cy1-10;
+}
+
 void ColPacManFantasmas(){
 
 	for(int i=0;i<4;i++){
 
 		if(Col(fantasma[i].cx1, fantasma[i].cy1, fantasma[i].cx2, fantasma[i].cy2,
-			pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2)){
+			pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2) && fantasma[i].vivo){
 				fantasma[i].vivo=false;
 				fantasma[i].mMov[0]=13-fantasma[i].casillaC;
 				fantasma[i].mMov[1]=13-fantasma[i].casillaF;
-				if(GetCuadrante(fantasma[i].casillaF,fantasma[i].casillaC)== 1 || GetCuadrante(fantasma[i].casillaF,fantasma[i].casillaC)== 4)
-					fantasma[i].d=1;
-				else
-					fantasma[i].d=2;
+				AjusteCasilla(i);
 		}
-
-
 	}
+}
+
+
+bool CentradoCasilla(int ax, int ay, int bx, int by){
+
+	if (ax == bx && ay == by)
+		return true;
+	else
+		return false;
 
 }
+
+bool ComprobarInterseccion(int a,int b){
+	
+	int contador=0;
+	
+	if (casilla[a][b + 1].tipo!=1)
+		contador++;
+	if (casilla[a][b - 1].tipo!=1)
+		contador++;
+	if (casilla[a + 1][b].tipo!=1)
+		contador++;
+	if (casilla[a - 1][b].tipo!=1)
+		contador++;
+	
+	if (contador>2)
+		return true;
+	else
+		return false;
+	
+}
+
+
+void FantasmaMuerteDir(){
+	for(int i=0;i<4;i++){
+		if(!fantasma[i].vivo && (ComprobarInterseccion(fantasma[i].casillaF,fantasma[i].casillaC) || fantasma[i].stuck)
+			&& CentradoCasilla(fantasma[i].cx1,fantasma[i].cy1,casilla[fantasma[i].casillaF][fantasma[i].casillaC].ax,casilla[fantasma[i].casillaF][fantasma[i].casillaC].ay)){
+			switch(GetCuadrante(fantasma[i].casillaF,fantasma[i].casillaC)){
+				
+				case 1:
+					if(casilla[fantasma[i].casillaF+1][fantasma[i].casillaC].tipo!=1){
+						fantasma[i].d=4;
+					}else if(casilla[fantasma[i].casillaF][fantasma[i].casillaC+1].tipo!=1){
+						fantasma[i].d=1;
+					}else if(casilla[fantasma[i].casillaF][fantasma[i].casillaC-1].tipo!=1){
+						fantasma[i].d=2;
+					}else if(casilla[fantasma[i].casillaF-1][fantasma[i].casillaC].tipo!=1){
+						fantasma[i].d=3;
+					}
+					break;
+				case 2:
+
+					if(casilla[fantasma[i].casillaF+1][fantasma[i].casillaC].tipo!=1){
+						fantasma[i].d=4;
+					}else if(casilla[fantasma[i].casillaF][fantasma[i].casillaC-1].tipo!=1){
+						fantasma[i].d=2;
+					}else if(casilla[fantasma[i].casillaF][fantasma[i].casillaC+1].tipo!=1){
+						fantasma[i].d=1;
+					}else if(casilla[fantasma[i].casillaF-1][fantasma[i].casillaC].tipo!=1){
+						fantasma[i].d=3;
+					}
+					break;
+				case 3:
+
+					if(casilla[fantasma[i].casillaF-1][fantasma[i].casillaC].tipo!=1){
+						fantasma[i].d=3;
+					}else if(casilla[fantasma[i].casillaF][fantasma[i].casillaC-1].tipo!=1){
+						fantasma[i].d=2;
+					}else if(casilla[fantasma[i].casillaF][fantasma[i].casillaC+1].tipo!=1){
+						fantasma[i].d=1;
+					}else if(casilla[fantasma[i].casillaF+1][fantasma[i].casillaC].tipo!=1){
+						fantasma[i].d=4;
+					}
+					break;
+				case 4:
+
+					if(casilla[fantasma[i].casillaF-1][fantasma[i].casillaC].tipo!=1){
+						fantasma[i].d=3;
+					}else if(casilla[fantasma[i].casillaF][fantasma[i].casillaC+1].tipo!=1){
+						fantasma[i].d=1;
+					}else if(casilla[fantasma[i].casillaF][fantasma[i].casillaC-1].tipo!=1){
+						fantasma[i].d=2;
+					}else if(casilla[fantasma[i].casillaF+1][fantasma[i].casillaC].tipo!=1){
+						fantasma[i].d=4;
+					}
+					break;
+				
+			}
+
+			fantasma[i].stuck=false;
+		}
+	}
+}
+
+
 
 bool ColSwitchFantasma(int i, int d){
 	switch (d){
@@ -503,30 +618,12 @@ void FantasmasMov(){
 	}
 }
 
-bool ComprobarInterseccion(int a,int b){
-	
-	int contador=0;
-	
-	if (casilla[a][b + 1].tipo!=1)
-		contador++;
-	if (casilla[a][b - 1].tipo!=1)
-		contador++;
-	if (casilla[a + 1][b].tipo!=1)
-		contador++;
-	if (casilla[a - 1][b].tipo!=1)
-		contador++;
-	
-	if (contador>2)
-		return true;
-	else
-		return false;
-	
-}
+
 
 
 void FantasmasDir(){
 	for(int i=0;i<4;i++){
-		if(ComprobarInterseccion(fantasma[i].casillaF,fantasma[i].casillaC) || fantasma[i].stuck){
+		if((ComprobarInterseccion(fantasma[i].casillaF,fantasma[i].casillaC) || fantasma[i].stuck) && fantasma[i].vivo){
 			if( fantasma[i].cx1==casilla[fantasma[i].casillaF][fantasma[i].casillaC].ax && fantasma[i].cy1==casilla[fantasma[i].casillaF][fantasma[i].casillaC].ay){
  			
  			bool Update=false;
@@ -640,33 +737,11 @@ void DrawWalls(){
 	}
 }
 
-void FantasmaMuerteMov(){
-	for(int i=0;i<4;i++){
-		if()
-			switch(GetCuadrante(fantasma[i].casillaF,fantasma[i].casillaC)){
-				
-				case 1:
-					if()
-				case 2:
-				case 3:
-				case 4:
-				
-			}
-	}
-}
 
-int GetCuadrante(int a, int b){
-	
-	if (a<14 && b<13)
-		return 1;
-	else if(a>=14 && b<13)
-		return 2;
-	else if(a>=14 && b>=13)
-		return 3;
-	else if(a<14 && b>=13)
-		return 4;
 
-}
+
+
+
 
 
 
@@ -698,12 +773,12 @@ int esat::main(int argc, char **argv) {
   InitPos();
   InitCasillas();
   
-  for(int i=0;i<31;i++){
+  /*for(int i=0;i<31;i++){
 	for(int j=0;j<28;j++){
 		printf("%d", casilla[i][j].tipo);		
 	}
 	printf("\n");
-  }
+  }*/
   
 
   while(esat::WindowIsOpened() && !esat::IsSpecialKeyDown(esat::kSpecialKey_Escape)) {
@@ -718,6 +793,7 @@ int esat::main(int argc, char **argv) {
 	UpdateFantasmasCasilla();
 	PacManMov();
 	FantasmasDir();	
+	FantasmaMuerteDir();
 	FantasmasMov();	
 
 	ColPacManFantasmas();
@@ -733,7 +809,7 @@ int esat::main(int argc, char **argv) {
 
 	DrawWalls();
 
-	printf("(%d,%d)\n",pacman.cx1,pacman.cy1);
+	//printf("(%d,%d)\n",pacman.cx1,pacman.cy1);
 	
     
 

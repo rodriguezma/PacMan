@@ -92,6 +92,7 @@ struct Fantasmas{
 	bool stuck=false;
 	esat::SpriteHandle sprite;
 	bool vivo=true;
+	int mMov[2];
 }fantasma[4];   
 
                  
@@ -314,9 +315,11 @@ void ColPacManFantasmas(){
 	for(int i=0;i<4;i++){
 
 		if(Col(fantasma[i].cx1, fantasma[i].cy1, fantasma[i].cx2, fantasma[i].cy2,
-			pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2))
-
-			fantasma[i].vivo=false;
+			pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2)){
+				fantasma[i].vivo=false;
+				fantasma[i].mMov[0]=13-fantasma[i].casillaC;
+				fantasma[i].mMov[1]=13-fantasma[i].casillaF;
+		}
 
 
 	}
@@ -608,6 +611,22 @@ void DrawWalls(){
 		for(int j=0;j<28;j++){
 			if(casilla[i][j].tipo==1)
 				esat::DrawLine(casilla[i][j].ax,casilla[i][j].ay,casilla[i][j].bx,casilla[i][j].by);
+		}
+	}
+}
+
+void FantasmaMuerteMov(){
+	for(int i=0;i<4;i++){
+		if(!fantasma[i].vivo){
+			if(fantasma[i].mMov[0]>0 && casilla[fantasma[i].casillaC+1].tipo !=1)
+				fantasma[i].d = 1:
+				fantasma[i].mMov[0]
+			else if(fantasma[i].mMov[0]<0 && casilla[fantasma[i].casillaC-1].tipo !=1)
+				fantasma[i].d = 2:
+			else if(fantasma[i].mMov[1]>0 && casilla[fantasma[i].casillaF+1].tipo !=1)
+				fantasma[i].d = 3:
+			else if(fantasma[i].mMov[1]<0 && casilla[fantasma[i].casillaF-1].tipo !=1)
+				fantasma[i].d = 4;
 		}
 	}
 }

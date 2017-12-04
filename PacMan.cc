@@ -319,6 +319,10 @@ void ColPacManFantasmas(){
 				fantasma[i].vivo=false;
 				fantasma[i].mMov[0]=13-fantasma[i].casillaC;
 				fantasma[i].mMov[1]=13-fantasma[i].casillaF;
+				if(GetCuadrante(fantasma[i].casillaF,fantasma[i].casillaC)== 1 || GetCuadrante(fantasma[i].casillaF,fantasma[i].casillaC)== 4)
+					fantasma[i].d=1;
+				else
+					fantasma[i].d=2;
 		}
 
 
@@ -499,9 +503,30 @@ void FantasmasMov(){
 	}
 }
 
+bool ComprobarInterseccion(int a,int b){
+	
+	int contador=0;
+	
+	if (casilla[a][b + 1].tipo!=1)
+		contador++;
+	if (casilla[a][b - 1].tipo!=1)
+		contador++;
+	if (casilla[a + 1][b].tipo!=1)
+		contador++;
+	if (casilla[a - 1][b].tipo!=1)
+		contador++;
+	
+	if (contador>2)
+		return true;
+	else
+		return false;
+	
+}
+
+
 void FantasmasDir(){
 	for(int i=0;i<4;i++){
-		if(rand()%1000<50 || fantasma[i].stuck){
+		if(ComprobarInterseccion(fantasma[i].casillaF,fantasma[i].casillaC) || fantasma[i].stuck){
 			if( fantasma[i].cx1==casilla[fantasma[i].casillaF][fantasma[i].casillaC].ax && fantasma[i].cy1==casilla[fantasma[i].casillaF][fantasma[i].casillaC].ay){
  			
  			bool Update=false;
@@ -617,18 +642,30 @@ void DrawWalls(){
 
 void FantasmaMuerteMov(){
 	for(int i=0;i<4;i++){
-		if(!fantasma[i].vivo){
-			if(fantasma[i].mMov[0]>0 && casilla[fantasma[i].casillaC+1].tipo !=1)
-				fantasma[i].d = 1:
-				fantasma[i].mMov[0]
-			else if(fantasma[i].mMov[0]<0 && casilla[fantasma[i].casillaC-1].tipo !=1)
-				fantasma[i].d = 2:
-			else if(fantasma[i].mMov[1]>0 && casilla[fantasma[i].casillaF+1].tipo !=1)
-				fantasma[i].d = 3:
-			else if(fantasma[i].mMov[1]<0 && casilla[fantasma[i].casillaF-1].tipo !=1)
-				fantasma[i].d = 4;
-		}
+		if()
+			switch(GetCuadrante(fantasma[i].casillaF,fantasma[i].casillaC)){
+				
+				case 1:
+					if()
+				case 2:
+				case 3:
+				case 4:
+				
+			}
 	}
+}
+
+int GetCuadrante(int a, int b){
+	
+	if (a<14 && b<13)
+		return 1;
+	else if(a>=14 && b<13)
+		return 2;
+	else if(a>=14 && b>=13)
+		return 3;
+	else if(a<14 && b>=13)
+		return 4;
+
 }
 
 

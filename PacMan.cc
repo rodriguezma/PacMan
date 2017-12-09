@@ -18,12 +18,25 @@
  esat::SpriteHandle PacMan[9];
  esat::SpriteHandle Dot[2];
  esat::SpriteHandle	Fantasmas[4][8];
+ esat::SpriteHandle Ojos[4];
 
  //int auxanim=0;
  int AnimPacMan[4][4]={	0,1,2,1,
  						0,3,4,3,
  						0,5,6,5,
  						0,7,8,7	};
+
+ int score=0;
+ char scorechar[10];
+ 
+ double time;
+ double auxrtime;
+ int gamestate=2;
+
+ 
+ double f1time;
+ double f2time;
+
  int w=672/28;
  int h=744/31;
 
@@ -47,7 +60,7 @@
  						1,1,1,1,1,1,2,1,1,1,1,1,0,1,
  						1,1,1,1,1,1,2,1,1,1,1,1,0,1,
  						1,1,1,1,1,1,2,1,1,0,0,0,0,0,
- 						1,1,1,1,1,1,2,1,1,0,1,1,1,4,
+ 						1,1,1,1,1,1,2,1,1,0,1,1,1,1,
  						1,1,1,1,1,1,2,1,1,0,1,0,0,0,
  						0,0,0,0,0,0,2,0,0,0,1,0,0,0,
  						1,1,1,1,1,1,2,1,1,0,1,0,0,0,
@@ -66,7 +79,47 @@
  						1,2,1,1,1,1,1,1,1,1,1,1,2,1,
  						1,2,2,2,2,2,2,2,2,2,2,2,2,2,
  						1,1,1,1,1,1,1,1,1,1,1,1,1,1
+};
+
+int DeadDirs[31][28]={	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+ 						0,1,1,1,1,1,4,2,2,2,1,1,4,0,0,4,2,2,1,1,1,4,2,2,2,2,2,0,
+ 						0,4,0,0,0,0,4,0,0,0,0,0,4,0,0,4,0,0,0,0,0,4,0,0,0,0,4,0,
+ 						0,4,0,0,0,0,4,0,0,0,0,0,4,0,0,4,0,0,0,0,0,4,0,0,0,0,4,0,
+ 						0,4,0,0,0,0,4,0,0,0,0,0,4,0,0,4,0,0,0,0,0,4,0,0,0,0,4,0,
+ 						0,1,1,1,1,1,1,1,1,4,2,2,2,2,1,1,1,1,4,2,2,2,2,2,2,2,2,0,
+ 						0,3,0,0,0,0,3,0,0,4,0,0,0,0,0,0,0,0,4,0,0,3,0,0,0,0,3,0,
+ 						0,3,0,0,0,0,3,0,0,4,0,0,0,0,0,0,0,0,4,0,0,3,0,0,0,0,3,0,
+ 						0,1,1,1,1,1,3,0,0,1,1,1,4,0,0,4,2,2,2,0,0,3,2,2,2,2,2,0,
+ 						0,0,0,0,0,0,4,0,0,0,0,0,4,0,0,4,0,0,0,0,0,4,0,0,0,0,0,0,
+ 						0,0,0,0,0,0,4,0,0,0,0,0,4,0,0,4,0,0,0,0,0,4,0,0,0,0,0,0,
+ 						0,0,0,0,0,0,4,0,0,1,1,1,1,4,4,2,2,2,2,0,0,4,0,0,0,0,0,0,
+ 						0,0,0,0,0,0,4,0,0,3,0,0,0,4,4,0,0,0,3,0,0,4,0,0,0,0,0,0,
+ 						0,0,0,0,0,0,4,0,0,3,0,0,0,4,4,0,0,0,3,0,0,4,0,0,0,0,0,0,
+ 						1,1,1,1,1,1,1,1,1,3,0,0,0,5,5,0,0,0,3,2,2,2,2,2,2,2,2,2,
+ 						0,0,0,0,0,0,3,0,0,3,0,0,0,0,0,0,0,0,3,0,0,3,0,0,0,0,0,0,
+ 						0,0,0,0,0,0,3,0,0,3,0,0,0,0,0,0,0,0,3,0,0,3,0,0,0,0,0,0,
+ 						0,0,0,0,0,0,3,0,0,3,2,2,2,2,1,1,1,1,3,0,0,3,0,0,0,0,0,0,
+ 						0,0,0,0,0,0,3,0,0,3,0,0,0,0,0,0,0,0,3,0,0,3,0,0,0,0,0,0,
+ 						0,0,0,0,0,0,3,0,0,3,0,0,0,0,0,0,0,0,3,0,0,3,0,0,0,0,0,0,
+ 						0,1,1,1,1,1,1,1,1,3,2,2,2,0,0,1,1,1,3,2,2,2,2,2,2,2,2,0,
+ 						0,3,0,0,0,0,3,0,0,0,0,0,3,0,0,3,0,0,0,0,0,3,0,0,0,0,3,0,
+ 						0,3,0,0,0,0,3,0,0,0,0,0,3,0,0,3,0,0,0,0,0,3,0,0,0,0,3,0,
+ 						0,3,2,2,0,0,3,2,2,1,1,1,3,2,1,3,2,2,2,1,1,3,0,0,1,1,3,0,
+ 						0,0,0,3,0,0,3,0,0,3,0,0,0,0,0,0,0,0,3,0,0,3,0,0,3,0,0,0,
+ 						0,0,0,3,0,0,3,0,0,3,0,0,0,0,0,0,0,0,3,0,0,3,0,0,3,0,0,0,
+ 						0,1,1,1,1,1,3,0,0,3,2,2,2,0,0,1,1,1,3,0,0,3,2,2,2,2,2,0,
+ 						0,3,0,0,0,0,0,0,0,0,0,0,3,0,0,3,0,0,0,0,0,0,0,0,0,0,3,0,
+ 						0,3,0,0,0,0,0,0,0,0,0,0,3,0,0,3,0,0,0,0,0,0,0,0,0,0,3,0,
+ 						0,3,2,2,2,2,2,2,1,1,1,1,3,2,1,3,2,2,2,2,1,1,1,1,1,1,3,0,
+ 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
  					};
+
+int SalidaDir[4][4]={	0,5,5,0,
+						0,3,3,0,
+						0,3,3,0,
+						1,3,3,2
+ 					};
+				
  
  struct casillas{
 	int ax,ay,bx,by;
@@ -80,6 +133,8 @@ struct PacMan{
 	int d=1;
 	int v=1;
 	int casillaF,casillaC;
+	int lives=4;
+	bool rampage=false;
 	int anim=0;
 	bool stuck=false;
 	esat::SpriteHandle sprite;
@@ -93,6 +148,8 @@ struct Fantasmas{
 	int casillaF,casillaC;
 	int anim=0;
 	bool stuck=false;
+	bool carcel=false;
+	bool salida=false;
 	esat::SpriteHandle sprite;
 	bool vivo=true;
 	int mMov[2];
@@ -115,18 +172,25 @@ struct Fantasmas{
  
  void InitFantasmas(){
 	 
-	 fantasma[0].cx1 = 278;
+	 fantasma[0].cx1 = 288;
 	 fantasma[0].cy1 = 336;
+	 fantasma[0].salida = true;
+	 fantasma[0].d = 3;
 	
-	 fantasma[1].cx1 = 370;
+	 fantasma[1].cx1 = 360;
 	 fantasma[1].cy1 = 336;
+	 fantasma[1].salida = true;
+	fantasma[1].d = 3;
 	
 	 fantasma[2].cx1 = 312;
 	 fantasma[2].cy1 = 312;
 	 fantasma[2].d = 3;
+	fantasma[2].salida = true;
 	
 	 fantasma[3].cx1 = 324;
 	 fantasma[3].cy1 = 264;
+	 fantasma[3].salida = false;
+
 
 
 	 for(int i=0;i<4;i++){
@@ -143,11 +207,15 @@ struct Fantasmas{
 	 
 }
 
+void InitGame(){
+	f1time=time+5000;
+	f2time=time+15000;
+}
 
  void MostrarFantasmas(){
  	for(int i=0;i<4;i++){
  		//if(fantasma[i].vivo)
- 			esat::DrawSprite(fantasma[i].sprite,fantasma[i].x,fantasma[i].y);
+ 			esat::DrawSprite(fantasma[i].sprite,fantasma[i].x,fantasma[i].y+48);
  	}
  }
  
@@ -176,6 +244,9 @@ void CargaSprites(){
 			Fantasmas[i][j] = esat::SubSprite(SpriteSheet,682+j*51,104+i*54,42,42);		
 		}
 	}
+
+	for(int i=0;i<4;i++)
+		Ojos[i]=esat::SubSprite(SpriteSheet,882+i*50,321,42,42);
 }
 
 void InitPos(){
@@ -327,31 +398,6 @@ bool ColSwitch(int d){
 		break;
 	}
 }
-
-void AjusteCasilla(int i){
-	fantasma[i].cx1=casilla[fantasma[i].casillaF][fantasma[i].casillaC].ax;
-	fantasma[i].cy1=casilla[fantasma[i].casillaF][fantasma[i].casillaC].ay;
-	fantasma[i].cx2=casilla[fantasma[i].casillaF][fantasma[i].casillaC].bx;
-	fantasma[i].cy2=casilla[fantasma[i].casillaF][fantasma[i].casillaC].bx;
-	fantasma[i].x=fantasma[i].cx1-10;
-	fantasma[i].y=fantasma[i].cy1-10;
-}
-
-void ColPacManFantasmas(){
-
-	for(int i=0;i<4;i++){
-
-		if(Col(fantasma[i].cx1, fantasma[i].cy1, fantasma[i].cx2, fantasma[i].cy2,
-			pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2) && fantasma[i].vivo){
-				fantasma[i].vivo=false;
-				fantasma[i].mMov[0]=13-fantasma[i].casillaC;
-				fantasma[i].mMov[1]=13-fantasma[i].casillaF;
-				AjusteCasilla(i);
-		}
-	}
-}
-
-
 bool CentradoCasilla(int ax, int ay, int bx, int by){
 
 	if (ax == bx && ay == by)
@@ -361,86 +407,79 @@ bool CentradoCasilla(int ax, int ay, int bx, int by){
 
 }
 
-bool ComprobarInterseccion(int a,int b){
-	
-	int contador=0;
-	
-	if (casilla[a][b + 1].tipo!=1)
-		contador++;
-	if (casilla[a][b - 1].tipo!=1)
-		contador++;
-	if (casilla[a + 1][b].tipo!=1)
-		contador++;
-	if (casilla[a - 1][b].tipo!=1)
-		contador++;
-	
-	if (contador>2)
-		return true;
-	else
-		return false;
-	
+void AjusteCasilla(int i){
+	if((fantasma[i].d==1 || fantasma[i].d==2) && 
+		!CentradoCasilla(fantasma[i].cx1,fantasma[i].cy1,casilla[fantasma[i].casillaF][fantasma[i].casillaC].ax,casilla[fantasma[i].casillaF][fantasma[i].casillaC].ay) &&
+		(DeadDirs[fantasma[i].casillaF][fantasma[i].casillaC]==3 || DeadDirs[fantasma[i].casillaF][fantasma[i].casillaC]==4)){
+		if(fantasma[i].cx1>casilla[fantasma[i].casillaF][fantasma[i].casillaC].ax)
+			fantasma[i].d=2;
+		else if(fantasma[i].cx1<casilla[fantasma[i].casillaF][fantasma[i].casillaC].ax)
+			fantasma[i].d=1;
+		else if(fantasma[i].cy1>casilla[fantasma[i].casillaF][fantasma[i].casillaC].ay)
+			fantasma[i].d=3;
+		else if(fantasma[i].cy1<casilla[fantasma[i].casillaF][fantasma[i].casillaC].ay)
+			fantasma[i].d=4;
+	}
+}
+
+void AjusteCasillaCarcel(int i){
+	printf("ajuste: %d, %d\n",fantasma[i].cy1,casilla[fantasma[i].casillaF][fantasma[i].casillaC].ax);
+	if(!CentradoCasilla(fantasma[i].cx1,fantasma[i].cy1,casilla[fantasma[i].casillaF][fantasma[i].casillaC].ax,casilla[fantasma[i].casillaF][fantasma[i].casillaC].ay)){
+		if(fantasma[i].cx1>casilla[fantasma[i].casillaF][fantasma[i].casillaC].ax){
+			fantasma[i].d=2;
+			printf("izquierda\n");
+		}
+		else if(fantasma[i].cx1<casilla[fantasma[i].casillaF][fantasma[i].casillaC].ax){
+			fantasma[i].d=1;
+			printf("derecha\n");
+		}
+		else if(fantasma[i].cy1>casilla[fantasma[i].casillaF][fantasma[i].casillaC].ay){
+			printf("abajo\n");
+			fantasma[i].d=3;
+		}
+		else if(fantasma[i].cy1<casilla[fantasma[i].casillaF][fantasma[i].casillaC].ay){
+			printf("arriba\n");
+			fantasma[i].d=4;
+		}
+	}
+		
+}
+
+
+void ColPacManFantasmas(){
+
+	for(int i=0;i<4;i++){
+
+		if(Col(fantasma[i].cx1, fantasma[i].cy1, fantasma[i].cx2, fantasma[i].cy2,
+			pacman.cx1, pacman.cy1, pacman.cx2, pacman.cy2) && fantasma[i].vivo){
+				if(pacman.rampage){
+					fantasma[i].vivo=false;
+					AjusteCasilla(i);
+				}else{
+					--pacman.lives;
+					InitPacMan();
+					InitFantasmas();
+					InitGame();
+					if(pacman.lives==0)
+						gamestate=2;
+				}
+				}
+	}
 }
 
 
 void FantasmaMuerteDir(){
 	for(int i=0;i<4;i++){
-		if(!fantasma[i].vivo && (ComprobarInterseccion(fantasma[i].casillaF,fantasma[i].casillaC) || fantasma[i].stuck)
-			&& CentradoCasilla(fantasma[i].cx1,fantasma[i].cy1,casilla[fantasma[i].casillaF][fantasma[i].casillaC].ax,casilla[fantasma[i].casillaF][fantasma[i].casillaC].ay)){
-			switch(GetCuadrante(fantasma[i].casillaF,fantasma[i].casillaC)){
-				
-				case 1:
-					if(casilla[fantasma[i].casillaF+1][fantasma[i].casillaC].tipo!=1){
-						fantasma[i].d=4;
-					}else if(casilla[fantasma[i].casillaF][fantasma[i].casillaC+1].tipo!=1){
-						fantasma[i].d=1;
-					}else if(casilla[fantasma[i].casillaF][fantasma[i].casillaC-1].tipo!=1){
-						fantasma[i].d=2;
-					}else if(casilla[fantasma[i].casillaF-1][fantasma[i].casillaC].tipo!=1){
-						fantasma[i].d=3;
-					}
-					break;
-				case 2:
+		if(!fantasma[i].vivo && CentradoCasilla(fantasma[i].cx1,fantasma[i].cy1,casilla[fantasma[i].casillaF][fantasma[i].casillaC].ax,casilla[fantasma[i].casillaF][fantasma[i].casillaC].ay))
+			 fantasma[i].d=DeadDirs[fantasma[i].casillaF][fantasma[i].casillaC];
 
-					if(casilla[fantasma[i].casillaF+1][fantasma[i].casillaC].tipo!=1){
-						fantasma[i].d=4;
-					}else if(casilla[fantasma[i].casillaF][fantasma[i].casillaC-1].tipo!=1){
-						fantasma[i].d=2;
-					}else if(casilla[fantasma[i].casillaF][fantasma[i].casillaC+1].tipo!=1){
-						fantasma[i].d=1;
-					}else if(casilla[fantasma[i].casillaF-1][fantasma[i].casillaC].tipo!=1){
-						fantasma[i].d=3;
-					}
-					break;
-				case 3:
-
-					if(casilla[fantasma[i].casillaF-1][fantasma[i].casillaC].tipo!=1){
-						fantasma[i].d=3;
-					}else if(casilla[fantasma[i].casillaF][fantasma[i].casillaC-1].tipo!=1){
-						fantasma[i].d=2;
-					}else if(casilla[fantasma[i].casillaF][fantasma[i].casillaC+1].tipo!=1){
-						fantasma[i].d=1;
-					}else if(casilla[fantasma[i].casillaF+1][fantasma[i].casillaC].tipo!=1){
-						fantasma[i].d=4;
-					}
-					break;
-				case 4:
-
-					if(casilla[fantasma[i].casillaF-1][fantasma[i].casillaC].tipo!=1){
-						fantasma[i].d=3;
-					}else if(casilla[fantasma[i].casillaF][fantasma[i].casillaC+1].tipo!=1){
-						fantasma[i].d=1;
-					}else if(casilla[fantasma[i].casillaF][fantasma[i].casillaC-1].tipo!=1){
-						fantasma[i].d=2;
-					}else if(casilla[fantasma[i].casillaF+1][fantasma[i].casillaC].tipo!=1){
-						fantasma[i].d=4;
-					}
-					break;
-				
-			}
-
-			fantasma[i].stuck=false;
+		if(DeadDirs[fantasma[i].casillaF][fantasma[i].casillaC]==5){
+			fantasma[i].carcel=true;
+			fantasma[i].vivo=true;
 		}
-	}
+
+
+}
 }
 
 
@@ -577,7 +616,7 @@ void FantasmasMov(){
 		switch (fantasma[i].d){
 		
 			case 1:
-				if(ColSwitchFantasma(i,fantasma[i].d) && casilla[fantasma[i].casillaF][fantasma[i].casillaC+1].tipo==1){
+				if(ColSwitchFantasma(i,fantasma[i].d) && casilla[fantasma[i].casillaF][fantasma[i].casillaC+1].tipo==1 && !fantasma[i].salida && !fantasma[i].carcel && fantasma[i].vivo){
 					fantasma[i].stuck=true;		
 				}else{
 				
@@ -587,7 +626,7 @@ void FantasmasMov(){
 			}
 			break;
 		case 2:
-			if(ColSwitchFantasma(i,fantasma[i].d) && casilla[fantasma[i].casillaF][fantasma[i].casillaC-1].tipo==1){
+			if(ColSwitchFantasma(i,fantasma[i].d) && casilla[fantasma[i].casillaF][fantasma[i].casillaC-1].tipo==1 && !fantasma[i].salida && !fantasma[i].carcel && fantasma[i].vivo){
 				fantasma[i].stuck=true;	
 			}else{
 				fantasma[i].x-=fantasma[i].v;
@@ -596,7 +635,7 @@ void FantasmasMov(){
 			}
 			break;
 		case 3:
-			if(ColSwitchFantasma(i,fantasma[i].d) && casilla[fantasma[i].casillaF-1][fantasma[i].casillaC].tipo==1){
+			if(ColSwitchFantasma(i,fantasma[i].d) && casilla[fantasma[i].casillaF-1][fantasma[i].casillaC].tipo==1 && !fantasma[i].salida && !fantasma[i].carcel && fantasma[i].vivo){
 				fantasma[i].stuck=true;	
 			}else{
 				fantasma[i].y-=fantasma[i].v;
@@ -605,7 +644,7 @@ void FantasmasMov(){
 			}
 			break;
 		case 4:
-			if(ColSwitchFantasma(i,fantasma[i].d) && casilla[fantasma[i].casillaF+1][fantasma[i].casillaC].tipo==1){
+			if(ColSwitchFantasma(i,fantasma[i].d) && casilla[fantasma[i].casillaF+1][fantasma[i].casillaC].tipo==1 && !fantasma[i].salida && !fantasma[i].carcel && fantasma[i].vivo){
 				fantasma[i].stuck=true;	
 			}else{
 				fantasma[i].y+=fantasma[i].v;
@@ -619,11 +658,29 @@ void FantasmasMov(){
 }
 
 
-
+bool ComprobarInterseccion(int a,int b){
+	
+	int contador=0;
+	
+	if (casilla[a][b + 1].tipo!=1)
+		contador++;
+	if (casilla[a][b - 1].tipo!=1)
+		contador++;
+	if (casilla[a + 1][b].tipo!=1)
+		contador++;
+	if (casilla[a - 1][b].tipo!=1)
+		contador++;
+	
+	if (contador>2)
+		return true;
+	else
+		return false;
+	
+}
 
 void FantasmasDir(){
 	for(int i=0;i<4;i++){
-		if((ComprobarInterseccion(fantasma[i].casillaF,fantasma[i].casillaC) || fantasma[i].stuck) && fantasma[i].vivo){
+		if((ComprobarInterseccion(fantasma[i].casillaF,fantasma[i].casillaC) || fantasma[i].stuck) && fantasma[i].vivo && !fantasma[i].carcel && !fantasma[i].salida){
 			if( fantasma[i].cx1==casilla[fantasma[i].casillaF][fantasma[i].casillaC].ax && fantasma[i].cy1==casilla[fantasma[i].casillaF][fantasma[i].casillaC].ay){
  			
  			bool Update=false;
@@ -666,22 +723,56 @@ void PacManDots(){
 		switch (pacman.d){
 		
 		case 1:
-			if(ColSwitch(pacman.d,12) && (casilla[pacman.casillaF][pacman.casillaC+1].tipo==2 || casilla[pacman.casillaF][pacman.casillaC+1].tipo==3))
-					casilla[pacman.casillaF][pacman.casillaC+1].tipo=0;
+			if(ColSwitch(pacman.d,12) && casilla[pacman.casillaF][pacman.casillaC+1].tipo==2){
+				score+=10;
+				casilla[pacman.casillaF][pacman.casillaC+1].tipo=0;
+			}else if(ColSwitch(pacman.d,12) && casilla[pacman.casillaF][pacman.casillaC+1].tipo==3){
+				pacman.rampage=true;
+
+				auxrtime=time+4000;
+				score+=50;
+				casilla[pacman.casillaF][pacman.casillaC+1].tipo=0;
+			}
+					
 			break;
 		case 2:
-			if(ColSwitch(pacman.d,12) && (casilla[pacman.casillaF][pacman.casillaC-1].tipo==2 || casilla[pacman.casillaF][pacman.casillaC-1].tipo==3))
-					casilla[pacman.casillaF][pacman.casillaC-1].tipo=0;
-			
+			if(ColSwitch(pacman.d,12) && casilla[pacman.casillaF][pacman.casillaC-1].tipo==2){
+				score+=10;
+				casilla[pacman.casillaF][pacman.casillaC-1].tipo=0;
+			}else if(ColSwitch(pacman.d,12) && casilla[pacman.casillaF][pacman.casillaC-1].tipo==3){
+				pacman.rampage=true;
+	
+				auxrtime=time+4000;
+				score+=50;
+				casilla[pacman.casillaF][pacman.casillaC-1].tipo=0;
+			}
 			break;
 		case 3:
-			if(ColSwitch(pacman.d,12) && (casilla[pacman.casillaF-1][pacman.casillaC].tipo==2 || casilla[pacman.casillaF-1][pacman.casillaC].tipo==3))
-					casilla[pacman.casillaF-1][pacman.casillaC].tipo=0;
+			if(ColSwitch(pacman.d,12) && casilla[pacman.casillaF-1][pacman.casillaC].tipo==2){
+
+				score+=10;
+				casilla[pacman.casillaF-1][pacman.casillaC].tipo=0;
+			}else if(ColSwitch(pacman.d,12) && casilla[pacman.casillaF-1][pacman.casillaC].tipo==3){
+				pacman.rampage=true;
+		
+				auxrtime=time+4000;
+				score+=50;
+				casilla[pacman.casillaF-1][pacman.casillaC].tipo=0;
+			}
 			break;
 		case 4:
-			if(ColSwitch(pacman.d,12) && (casilla[pacman.casillaF+1][pacman.casillaC].tipo==2 || casilla[pacman.casillaF+1][pacman.casillaC].tipo==3))
-					casilla[pacman.casillaF+1][pacman.casillaC].tipo=0;
+			if(ColSwitch(pacman.d,12) && casilla[pacman.casillaF+1][pacman.casillaC].tipo==2){
+				score+=10;
+				casilla[pacman.casillaF+1][pacman.casillaC].tipo=0;
+			}else if(ColSwitch(pacman.d,12) && casilla[pacman.casillaF+1][pacman.casillaC].tipo==3){
+				pacman.rampage=true;
+
+				auxrtime=time+4000;
+				score+=50;
+				casilla[pacman.casillaF+1][pacman.casillaC].tipo=0;
 			}
+			break;
+}
 }
 
 void PacManAnim(){
@@ -695,8 +786,12 @@ void PacManAnim(){
 void AnimFantasmas(){
 
 	for(int i=0;i<4;i++){
-		fantasma[i].anim=framesAnim%2;
-		fantasma[i].sprite=Fantasmas[i][fantasma[i].anim + (fantasma[i].d-1)*2];
+		if(fantasma[i].vivo){
+			fantasma[i].anim=framesAnim%2;
+			fantasma[i].sprite=Fantasmas[i][fantasma[i].anim + (fantasma[i].d-1)*2];
+		}else{
+			fantasma[i].sprite=Ojos[fantasma[i].d-1];
+		}
 	}	
 
 }
@@ -715,7 +810,7 @@ void DrawDots(){
 	for(int i=0;i<31;i++){
 		for(int j=0;j<28;j++){
 			if(casilla[i][j].tipo == 2 || casilla[i][j].tipo == 3)
-				esat::DrawSprite(casilla[i][j].sprite,casilla[i][j].ax,casilla[i][j].ay);
+				esat::DrawSprite(casilla[i][j].sprite,casilla[i][j].ax,casilla[i][j].ay+48);
 		}
 	}
 }
@@ -723,7 +818,7 @@ void DrawDots(){
 void MuestraPacMan(){
 
 	DrawDots();
-	esat::DrawSprite(pacman.sprite,pacman.x,pacman.y);
+	esat::DrawSprite(pacman.sprite,pacman.x,pacman.y+48);
 	
 
 }
@@ -738,8 +833,104 @@ void DrawWalls(){
 }
 
 
+void Pasillo (){
 
+	if(pacman.x>630)
+		esat::DrawSprite(pacman.sprite,pacman.x-630-42,pacman.y+48);
+	if(pacman.x<0)
+		esat::DrawSprite(pacman.sprite,672+pacman.x,pacman.y+48);
+	if(pacman.x==672)
+		pacman.x=0;
+	if(pacman.x==-42)
+		pacman.x=630;
+	if(pacman.cx1>672)
+		pacman.cx1=0;
+	if(pacman.cx2>672)
+		pacman.cx2=0;
+	if(pacman.cx1<0)
+		pacman.cx1=672;
+	if(pacman.cx2<0)
+		pacman.cx2=672;
 
+	for (int i=0;i<4;i++){
+		if(fantasma[i].x>630)
+			esat::DrawSprite(fantasma[i].sprite,fantasma[i].x-630-42,fantasma[i].y+48);
+		if(fantasma[i].x<0)
+			esat::DrawSprite(fantasma[i].sprite,672+fantasma[i].x,fantasma[i].y+48);
+		if(fantasma[i].x==672)
+			fantasma[i].x=0;
+		if(fantasma[i].x==-42)
+			fantasma[i].x=630;
+		if(fantasma[i].cx1>672)
+			fantasma[i].cx1=0;
+		if(fantasma[i].cx2>672)
+			fantasma[i].cx2=0;
+		if(fantasma[i].cx1<0)
+			fantasma[i].cx1=672;
+		if(fantasma[i].cx2<0)
+			fantasma[i].cx2=672;
+	}
+}
+
+void DrawScore(){
+	esat::DrawSetTextFont("./Recursos/Fuentes/ARCADECLASSIC.TTF");
+  	esat::DrawSetTextSize(30);
+  	itoa(score,scorechar,10);
+  	esat::DrawText(10, 30, "SCORE");
+  	esat::DrawText(600,30, scorechar);
+}
+
+void RampageTime(){
+	if(pacman.rampage && time>auxrtime)
+		pacman.rampage=false;
+}
+
+void CarcelDir(){
+	for(int i=0;i<4;i++){
+		if(fantasma[i].carcel){
+			if(CentradoCasilla(fantasma[i].cx1,fantasma[i].cy1,casilla[fantasma[i].casillaF][fantasma[i].casillaC].ax,casilla[fantasma[i].casillaF][fantasma[i].casillaC].ay) 
+				&& SalidaDir[fantasma[i].casillaF-11][fantasma[i].casillaC-12]!=5)
+				fantasma[i].d=SalidaDir[fantasma[i].casillaF-11][fantasma[i].casillaC-12];
+			else if(SalidaDir[fantasma[i].casillaF-11][fantasma[i].casillaC-12]==5)
+				fantasma[i].carcel=false;
+		}
+	}
+}
+
+void SalidaInicial(){
+
+	if(fantasma[2].cy1==264){
+		fantasma[2].salida=false;
+		fantasma[2].d=2;
+	}
+		
+	for(int i=0;i<2;i++){
+		if(fantasma[i].salida){
+			if(fantasma[i].cy1==325)
+				fantasma[i].d=4;
+			if(fantasma[i].cy2==370)
+				fantasma[i].d=3;
+			}
+		}
+	
+	if(time>f1time && fantasma[0].salida){
+		fantasma[0].salida=false;
+		fantasma[0].carcel=true;
+		AjusteCasillaCarcel(0);
+	}
+	if(time>f2time && fantasma[1].salida){
+		fantasma[1].salida=false;
+		fantasma[1].carcel=true;
+		AjusteCasillaCarcel(1);
+	}
+}
+
+void MuestraVidas(){
+
+	for(int i=0;i<pacman.lives;i++)
+		esat::DrawSprite(PacMan[1],10+i*50,795);
+
+}
 
 
 
@@ -755,6 +946,7 @@ int esat::main(int argc, char **argv) {
   unsigned char fps=60;
 
   int pacmananim=1;
+  
 
 
 
@@ -764,7 +956,7 @@ int esat::main(int argc, char **argv) {
   ejemplo1.load("./Recursos/Audio/ogg/dp_frogger_extra.ogg");
   ejemplo2.load("./Recursos/Audio/ogg/dp_frogger_start.ogg");
  
-  esat::WindowInit(672,744);
+  esat::WindowInit(672,840);
   WindowSetMouseVisibility(true);
   CargaSprites();
   pacman.sprite = PacMan[1];
@@ -772,6 +964,8 @@ int esat::main(int argc, char **argv) {
   InitFantasmas();
   InitPos();
   InitCasillas();
+  f1time=esat::Time()+5000;
+  f2time=esat::Time()+15000;
   
   /*for(int i=0;i<31;i++){
 	for(int j=0;j<28;j++){
@@ -783,35 +977,80 @@ int esat::main(int argc, char **argv) {
 
   while(esat::WindowIsOpened() && !esat::IsSpecialKeyDown(esat::kSpecialKey_Escape)) {
 	last_time = esat::Time();
-	
+	time = esat::Time();
 	esat::DrawBegin();
     esat::DrawClear(0,0,0);
+	switch(gamestate){
+		case 0:
+			esat::DrawSetTextFont("./Recursos/Fuentes/PAC-FONT.TTF");
+  			esat::DrawSetTextSize(70);
+  			esat::DrawText(145,300, "pacman");
+  			esat::DrawSetTextFont("./Recursos/Fuentes/ARCADECLASSIC.TTF");
+  			esat::DrawSetTextSize(30);
+  			if(frames%20 > 5)
+  				esat::DrawText(250,500, "PRESS SPACE");
+  			if(esat::IsSpecialKeyDown(esat::kSpecialKey_Space)){
+  				gamestate=1;
+  				InitGame();
+  			}
+		break;
+  			
+
+  				
+		case 1:
+			Anim();
+		    PacManInput();
+			UpdatePacManCasilla();
+			UpdateFantasmasCasilla();
+			Pasillo();
+			SalidaInicial();
+			CarcelDir();
+			FantasmasDir();	
+			FantasmaMuerteDir();
+			PacManMov();
+			
+			FantasmasMov();	
+
+			ColPacManFantasmas();
+
+			esat::DrawSprite(Mapa,0,48);
+			esat::DrawSetStrokeColor(255,255,255);
+			//DrawMatriz();
+			MuestraPacMan();
+			MostrarFantasmas();
+			MuestraVidas();
+			//DrawPacManCol();
+			PacManDots();
+			RampageTime();
+			DrawScore();
+		break;
+		case 2:
+			esat::DrawSetTextFont("./Recursos/Fuentes/PAC-FONT.TTF");
+  			esat::DrawSetTextSize(70);
+  			esat::DrawText(50,200, "game over");
+  			esat::DrawSetTextFont("./Recursos/Fuentes/ARCADECLASSIC.TTF");
+  			esat::DrawSetTextSize(30);
+  			if(frames%20 > 5)
+  				esat::DrawText(150,500, "PRESS SPACE TO PLAY AGAIN");
+  			if(esat::IsSpecialKeyDown(esat::kSpecialKey_Space)){
+				gamestate=1;
+				InitGame();
+  			}
+		break;
+	}
+
+
 	
-	Anim();
-    PacManInput();
-	UpdatePacManCasilla();
-	UpdateFantasmasCasilla();
-	PacManMov();
-	FantasmasDir();	
-	FantasmaMuerteDir();
-	FantasmasMov();	
-
-	ColPacManFantasmas();
-
-	esat::DrawSprite(Mapa,0,0);
-	esat::DrawSetStrokeColor(255,255,255);
-	DrawMatriz();
-	MuestraPacMan();
-	MostrarFantasmas();
-	DrawPacManCol();
-	PacManDots();
+	
+	
 
 
-	DrawWalls();
+
+	//DrawWalls();
 
 	//printf("(%d,%d)\n",pacman.cx1,pacman.cy1);
 	
-    
+    printf("%d,%d\n",fantasma[0].casillaF,fantasma[1].casillaF);	
 
 
 

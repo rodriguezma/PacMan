@@ -19,6 +19,7 @@
  esat::SpriteHandle Dot[2];
  esat::SpriteHandle	Fantasmas[4][8];
  esat::SpriteHandle Ojos[4];
+ esat::SpriteHandle PacManMuerte[10];
 
  //int auxanim=0;
  int AnimPacMan[4][4]={	0,1,2,1,
@@ -28,11 +29,13 @@
 
  int score=0;
  char scorechar[10];
+ int Dots=0;
  
  double time;
  double auxrtime;
- int gamestate=2;
+ int gamestate=0;
 
+ int DeadInx=0;
  
  double f1time;
  double f2time;
@@ -134,6 +137,7 @@ struct PacMan{
 	int v=1;
 	int casillaF,casillaC;
 	int lives=4;
+	bool dying;
 	bool rampage=false;
 	int anim=0;
 	bool stuck=false;
@@ -144,7 +148,7 @@ struct Fantasmas{
 	int x,y;
 	int cx1,cy1,cx2,cy2;
 	int d=1;
-	int v=1;
+	int v=2;
 	int casillaF,casillaC;
 	int anim=0;
 	bool stuck=false;
@@ -176,6 +180,8 @@ struct Fantasmas{
 	 fantasma[0].cy1 = 336;
 	 fantasma[0].salida = true;
 	 fantasma[0].d = 3;
+	 fantasma[0].anim=0;
+	
 	
 	 fantasma[1].cx1 = 360;
 	 fantasma[1].cy1 = 336;
@@ -190,6 +196,7 @@ struct Fantasmas{
 	 fantasma[3].cx1 = 324;
 	 fantasma[3].cy1 = 264;
 	 fantasma[3].salida = false;
+	 fantasma[3].d = 1;
 
 
 
@@ -198,6 +205,10 @@ struct Fantasmas{
 	 	fantasma[i].y = fantasma[i].cy1-10;
 	 	fantasma[i].cx2 = fantasma[i].cx1+24;
 	 	fantasma[i].cy2 = fantasma[i].cy1+24;
+	 	fantasma[i].anim=0;
+		fantasma[i].stuck=false;
+		fantasma[i].carcel=false;
+		fantasma[i].vivo=true;
 	 }
 	 
 	 fantasma[0].sprite = Fantasmas[0][0];
@@ -210,7 +221,10 @@ struct Fantasmas{
 void InitGame(){
 	f1time=time+5000;
 	f2time=time+15000;
+	
 }
+
+
 
  void MostrarFantasmas(){
  	for(int i=0;i<4;i++){
@@ -247,6 +261,10 @@ void CargaSprites(){
 
 	for(int i=0;i<4;i++)
 		Ojos[i]=esat::SubSprite(SpriteSheet,882+i*50,321,42,42);
+
+	for(int i=0;i<10;i++){
+		PacManMuerte[i]=esat::SubSprite(SpriteSheet,682+i*49,47,48,42);
+	}
 }
 
 void InitPos(){
@@ -259,6 +277,7 @@ void InitPos(){
 			casilla[i][j].by=h*i + h;
 		}
 	}
+
 }
 
 void DrawMatriz(){
@@ -283,14 +302,22 @@ void InitCasillas(){
 				
 				casilla[i][j].sprite=Dot[0];
 				casilla[i][27-j].sprite=Dot[0];
+				Dots+=2;
 			}else if(estados[i][j]==3){
 				
 				casilla[i][j].sprite=Dot[1];
 				casilla[i][27-j].sprite=Dot[1];
+				Dots+=2;
 			
 			}
 		}
 	}
+}
+
+void ResetGame(){
+	pacman.lives=4;
+	score=0;
+	InitCasillas();
 }
 
 int GetCuadrante(int a, int b){
@@ -334,8 +361,45 @@ void UpdatePacManCasilla(){
 	
 	pacman.casillaC = (pacman.cx1+w/2)/w;
 	pacman.casillaF = (pacman.cy1+h/2)/h;
+
 	//printf("%d, %d\n",pacman.casillaF,pacman.casillaC);
 	
+}
+
+void VelocidadPacMan(){
+	
+	switch (pacman.d){
+		
+		case 1:
+			if(casilla[pacman.casillaF][pacman.casillaC+1].tipo==2 || casilla[pacman.casillaF][pacman.casillaC+1].tipo==3){
+				pacman.v=1;
+			}else if(casilla[pacman.casillaF][pacman.casillaC+1].tipo==0){
+				pacman.v=2;
+			}
+			break;
+		case 2:
+			if((casilla[pacman.casillaF][pacman.casillaC-1].tipo==2 || casilla[pacman.casillaF][pacman.casillaC-1].tipo==3)){
+				pacman.v=1;
+			}else if(casilla[pacman.casillaF][pacman.casillaC-1].tipo==0 ){
+				pacman.v=2;
+			}
+			break;
+		case 3:
+			if(casilla[pacman.casillaF-1][pacman.casillaC].tipo==2 || casilla[pacman.casillaF-1][pacman.casillaC].tipo==3){
+				pacman.v=1;
+			}else if(casilla[pacman.casillaF-1][pacman.casillaC].tipo==0){
+				pacman.v=2;
+			}
+			break;
+		case 4:
+			if(casilla[pacman.casillaF+1][pacman.casillaC].tipo==2 || casilla[pacman.casillaF+1][pacman.casillaC].tipo==3){
+				pacman.v=1;
+			}else if(casilla[pacman.casillaF+1][pacman.casillaC].tipo==0){
+				pacman.v=2;
+			}
+		
+			break;
+	}
 }
 
 void UpdateFantasmasCasilla(){
@@ -457,11 +521,8 @@ void ColPacManFantasmas(){
 					AjusteCasilla(i);
 				}else{
 					--pacman.lives;
-					InitPacMan();
-					InitFantasmas();
-					InitGame();
-					if(pacman.lives==0)
-						gamestate=2;
+					pacman.dying=true;
+
 				}
 				}
 	}
@@ -726,20 +787,27 @@ void PacManDots(){
 			if(ColSwitch(pacman.d,12) && casilla[pacman.casillaF][pacman.casillaC+1].tipo==2){
 				score+=10;
 				casilla[pacman.casillaF][pacman.casillaC+1].tipo=0;
+				--Dots;
+
+
 			}else if(ColSwitch(pacman.d,12) && casilla[pacman.casillaF][pacman.casillaC+1].tipo==3){
+				
 				pacman.rampage=true;
 
 				auxrtime=time+4000;
 				score+=50;
 				casilla[pacman.casillaF][pacman.casillaC+1].tipo=0;
+				--Dots;
 			}
 					
 			break;
 		case 2:
 			if(ColSwitch(pacman.d,12) && casilla[pacman.casillaF][pacman.casillaC-1].tipo==2){
+				--Dots;
 				score+=10;
 				casilla[pacman.casillaF][pacman.casillaC-1].tipo=0;
 			}else if(ColSwitch(pacman.d,12) && casilla[pacman.casillaF][pacman.casillaC-1].tipo==3){
+				--Dots;
 				pacman.rampage=true;
 	
 				auxrtime=time+4000;
@@ -749,10 +817,12 @@ void PacManDots(){
 			break;
 		case 3:
 			if(ColSwitch(pacman.d,12) && casilla[pacman.casillaF-1][pacman.casillaC].tipo==2){
+				--Dots;
 
 				score+=10;
 				casilla[pacman.casillaF-1][pacman.casillaC].tipo=0;
 			}else if(ColSwitch(pacman.d,12) && casilla[pacman.casillaF-1][pacman.casillaC].tipo==3){
+				--Dots;
 				pacman.rampage=true;
 		
 				auxrtime=time+4000;
@@ -762,9 +832,11 @@ void PacManDots(){
 			break;
 		case 4:
 			if(ColSwitch(pacman.d,12) && casilla[pacman.casillaF+1][pacman.casillaC].tipo==2){
+				--Dots;
 				score+=10;
 				casilla[pacman.casillaF+1][pacman.casillaC].tipo=0;
 			}else if(ColSwitch(pacman.d,12) && casilla[pacman.casillaF+1][pacman.casillaC].tipo==3){
+				--Dots;
 				pacman.rampage=true;
 
 				auxrtime=time+4000;
@@ -773,6 +845,11 @@ void PacManDots(){
 			}
 			break;
 }
+}
+
+void WinCondition(){
+	if (Dots==0)
+		gamestate=3;
 }
 
 void PacManAnim(){
@@ -906,7 +983,7 @@ void SalidaInicial(){
 		
 	for(int i=0;i<2;i++){
 		if(fantasma[i].salida){
-			if(fantasma[i].cy1==325)
+			if(fantasma[i].cy1==324)
 				fantasma[i].d=4;
 			if(fantasma[i].cy2==370)
 				fantasma[i].d=3;
@@ -932,6 +1009,32 @@ void MuestraVidas(){
 
 }
 
+void AnimMuerte(){
+	
+	if(DeadInx==10){
+		if(pacman.lives==0)
+			gamestate=2;
+		else{
+			pacman.dying=false;
+			DeadInx=0;
+			InitPacMan();
+			InitFantasmas();
+			InitGame();	
+		}
+		
+	}else{
+		esat::DrawSprite(PacManMuerte[DeadInx],pacman.x-3,pacman.y+48);
+		esat::DrawSprite(Mapa,0,48);
+		esat::DrawSetStrokeColor(255,255,255);
+		DrawDots();
+		DrawScore();
+		MuestraVidas();
+		if(frames%10==0)
+			DeadInx++;
+	}
+
+	
+}
 
 
 
@@ -984,9 +1087,11 @@ int esat::main(int argc, char **argv) {
 		case 0:
 			esat::DrawSetTextFont("./Recursos/Fuentes/PAC-FONT.TTF");
   			esat::DrawSetTextSize(70);
+  			esat::DrawSetFillColor(255,255,0);
   			esat::DrawText(145,300, "pacman");
   			esat::DrawSetTextFont("./Recursos/Fuentes/ARCADECLASSIC.TTF");
   			esat::DrawSetTextSize(30);
+  			esat::DrawSetFillColor(255,255,255);
   			if(frames%20 > 5)
   				esat::DrawText(250,500, "PRESS SPACE");
   			if(esat::IsSpecialKeyDown(esat::kSpecialKey_Space)){
@@ -998,43 +1103,72 @@ int esat::main(int argc, char **argv) {
 
   				
 		case 1:
-			Anim();
-		    PacManInput();
-			UpdatePacManCasilla();
-			UpdateFantasmasCasilla();
-			Pasillo();
-			SalidaInicial();
-			CarcelDir();
-			FantasmasDir();	
-			FantasmaMuerteDir();
-			PacManMov();
+			if(pacman.dying){
+				AnimMuerte();
+			}else{
+				Anim();
+			    PacManInput();
+				UpdatePacManCasilla();
+				UpdateFantasmasCasilla();
+				Pasillo();
+				SalidaInicial();
+				CarcelDir();
+				FantasmasDir();	
+				FantasmaMuerteDir();
+				VelocidadPacMan();
+				PacManMov();
+				
+				FantasmasMov();	
+
+				ColPacManFantasmas();
+
+				esat::DrawSprite(Mapa,0,48);
+				esat::DrawSetStrokeColor(255,255,255);
+				//DrawMatriz();
+				MuestraPacMan();
+				MostrarFantasmas();
+				MuestraVidas();
+				//DrawPacManCol();
+				PacManDots();
+				WinCondition();
+				RampageTime();
+				DrawScore();
+			}
 			
-			FantasmasMov();	
-
-			ColPacManFantasmas();
-
-			esat::DrawSprite(Mapa,0,48);
-			esat::DrawSetStrokeColor(255,255,255);
-			//DrawMatriz();
-			MuestraPacMan();
-			MostrarFantasmas();
-			MuestraVidas();
-			//DrawPacManCol();
-			PacManDots();
-			RampageTime();
-			DrawScore();
 		break;
 		case 2:
 			esat::DrawSetTextFont("./Recursos/Fuentes/PAC-FONT.TTF");
   			esat::DrawSetTextSize(70);
+  			esat::DrawSetFillColor(255,255,0);
   			esat::DrawText(50,200, "game over");
   			esat::DrawSetTextFont("./Recursos/Fuentes/ARCADECLASSIC.TTF");
   			esat::DrawSetTextSize(30);
+  			esat::DrawSetFillColor(255,255,255);
   			if(frames%20 > 5)
   				esat::DrawText(150,500, "PRESS SPACE TO PLAY AGAIN");
   			if(esat::IsSpecialKeyDown(esat::kSpecialKey_Space)){
 				gamestate=1;
 				InitGame();
+				ResetGame();
+  			}
+		break;
+		case 3:
+			esat::DrawSetTextFont("./Recursos/Fuentes/PAC-FONT.TTF");
+  			esat::DrawSetTextSize(70);
+  			esat::DrawSetFillColor(255,255,0);
+  			esat::DrawText(125,200, "you win");
+  			esat::DrawSetTextFont("./Recursos/Fuentes/ARCADECLASSIC.TTF");
+  			esat::DrawSetTextSize(30);
+  			esat::DrawSetFillColor(255,255,255);
+			esat::DrawText(200,400, "SCORE");
+			itoa(score,scorechar,10);
+			esat::DrawText(350,400, scorechar);
+  			if(frames%20 > 5)
+  				esat::DrawText(150,500, "PRESS SPACE TO PLAY AGAIN");
+  			if(esat::IsSpecialKeyDown(esat::kSpecialKey_Space)){
+				gamestate=1;
+				InitGame();
+				ResetGame();
   			}
 		break;
 	}

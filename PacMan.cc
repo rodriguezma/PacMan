@@ -34,6 +34,7 @@
  double time;
  double auxrtime;
  int gamestate=0;
+ int a=3;
 
  int DeadInx=0;
  
@@ -134,7 +135,7 @@ struct PacMan{
 	int x,y;
 	int cx1,cy1,cx2,cy2;
 	int d=1;
-	int v=1;
+	int v=3;
 	int casillaF,casillaC;
 	int lives=4;
 	bool dying;
@@ -148,7 +149,7 @@ struct Fantasmas{
 	int x,y;
 	int cx1,cy1,cx2,cy2;
 	int d=1;
-	int v=2;
+	int v=3;
 	int casillaF,casillaC;
 	int anim=0;
 	bool stuck=false;
@@ -337,22 +338,22 @@ int GetCuadrante(int a, int b){
 void PacManInput(){
 	
 	if(esat::IsSpecialKeyPressed(esat::kSpecialKey_Right)){
-		if(pacman.cy1==casilla[pacman.casillaF][pacman.casillaC+1].ay)
+		if(pacman.cy1==casilla[pacman.casillaF][pacman.casillaC+1].ay && casilla[pacman.casillaF][pacman.casillaC+1].tipo!=1)
 			pacman.d = 1;
 	}
 	else if(esat::IsSpecialKeyPressed(esat::kSpecialKey_Left)){
 		//printf("izquierda: %d , %d\n",pacman.cy1,casilla[pacman.casillaF][pacman.casillaC-1].ay);
-		if(pacman.cy1==casilla[pacman.casillaF][pacman.casillaC-1].ay)
+		if(pacman.cy1==casilla[pacman.casillaF][pacman.casillaC-1].ay && casilla[pacman.casillaF][pacman.casillaC-1].tipo!=1)
 			pacman.d = 2;
 	}
 	else if(esat::IsSpecialKeyPressed(esat::kSpecialKey_Up)){
 		//printf("arriba: %d , %d\n",pacman.cx1,casilla[pacman.casillaF+1][pacman.casillaC].ax);
-		if(pacman.cx1==casilla[pacman.casillaF+1][pacman.casillaC].ax)
+		if(pacman.cx1==casilla[pacman.casillaF+1][pacman.casillaC].ax && casilla[pacman.casillaF+1][pacman.casillaC].tipo!=1)
 			pacman.d = 3;
 	}
 	else if(esat::IsSpecialKeyPressed(esat::kSpecialKey_Down)){
 		//printf("abajo: %d , %d\n",pacman.cx1,casilla[pacman.casillaF-1][pacman.casillaC].ax);
-		if(pacman.cx1==casilla[pacman.casillaF-1][pacman.casillaC].ax)
+		if(pacman.cx1==casilla[pacman.casillaF-1][pacman.casillaC].ax && casilla[pacman.casillaF-1][pacman.casillaC].tipo!=1)
 			pacman.d = 4;
 	}
 }
@@ -366,41 +367,6 @@ void UpdatePacManCasilla(){
 	
 }
 
-void VelocidadPacMan(){
-	
-	switch (pacman.d){
-		
-		case 1:
-			if(casilla[pacman.casillaF][pacman.casillaC+1].tipo==2 || casilla[pacman.casillaF][pacman.casillaC+1].tipo==3){
-				pacman.v=1;
-			}else if(casilla[pacman.casillaF][pacman.casillaC+1].tipo==0){
-				pacman.v=2;
-			}
-			break;
-		case 2:
-			if((casilla[pacman.casillaF][pacman.casillaC-1].tipo==2 || casilla[pacman.casillaF][pacman.casillaC-1].tipo==3)){
-				pacman.v=1;
-			}else if(casilla[pacman.casillaF][pacman.casillaC-1].tipo==0 ){
-				pacman.v=2;
-			}
-			break;
-		case 3:
-			if(casilla[pacman.casillaF-1][pacman.casillaC].tipo==2 || casilla[pacman.casillaF-1][pacman.casillaC].tipo==3){
-				pacman.v=1;
-			}else if(casilla[pacman.casillaF-1][pacman.casillaC].tipo==0){
-				pacman.v=2;
-			}
-			break;
-		case 4:
-			if(casilla[pacman.casillaF+1][pacman.casillaC].tipo==2 || casilla[pacman.casillaF+1][pacman.casillaC].tipo==3){
-				pacman.v=1;
-			}else if(casilla[pacman.casillaF+1][pacman.casillaC].tipo==0){
-				pacman.v=2;
-			}
-		
-			break;
-	}
-}
 
 void UpdateFantasmasCasilla(){
 	for(int i=0;i<4;i++){
@@ -985,7 +951,7 @@ void SalidaInicial(){
 		if(fantasma[i].salida){
 			if(fantasma[i].cy1==324)
 				fantasma[i].d=4;
-			if(fantasma[i].cy2==370)
+			if(fantasma[i].cy2==369)
 				fantasma[i].d=3;
 			}
 		}
@@ -1036,8 +1002,50 @@ void AnimMuerte(){
 	
 }
 
+int CasillaSiguiente(){
+	switch (pacman.d){
+		
+		case 1:
+			return casilla[pacman.casillaF][pacman.casillaC+1].tipo;
+					
+			break;
+		case 2:
+			return casilla[pacman.casillaF][pacman.casillaC-1].tipo;
+				
+			break;
+		case 3:
+			return casilla[pacman.casillaF-1][pacman.casillaC].tipo;
+				
+			break;
+		case 4:
+			return casilla[pacman.casillaF+1][pacman.casillaC].tipo;
+			
+			break;
+}
+}
 
 
+
+void Movimiento(){
+
+	if(CasillaSiguiente()==0)
+		a=3;
+	else if(CasillaSiguiente()==2 || CasillaSiguiente()==3)
+		a=2;
+
+	for(int i=0;i<a;i++){
+
+		PacManMov();
+	}
+	for(int i=0;i<4;i++){
+		SalidaInicial();
+		CarcelDir();
+		FantasmasDir();	
+		FantasmaMuerteDir();
+		FantasmasMov();
+	}
+	
+}
 
 /*void ColMuros(){
 	if(Col(pacman.cx1,pacman.cy1,))
@@ -1115,7 +1123,6 @@ int esat::main(int argc, char **argv) {
 				CarcelDir();
 				FantasmasDir();	
 				FantasmaMuerteDir();
-				VelocidadPacMan();
 				PacManMov();
 				
 				FantasmasMov();	

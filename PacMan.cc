@@ -11,7 +11,7 @@
 
  SoLoud::Soloud canal;
  //Declaración variables canal audio.
- SoLoud::Wav ejemplo1,ejemplo2;
+ SoLoud::Wav opening,eat,ghosteat,siren,eatpill,die;
  
  esat::SpriteHandle SpriteSheet;
  esat::SpriteHandle Mapa;
@@ -20,6 +20,7 @@
  esat::SpriteHandle	Fantasmas[4][8];
  esat::SpriteHandle Ojos[4];
  esat::SpriteHandle PacManMuerte[10];
+ esat::SpriteHandle FantasmaHuye[4];
 
  //int auxanim=0;
  int AnimPacMan[4][4]={	0,1,2,1,
@@ -33,8 +34,13 @@
  
  double time;
  double auxrtime;
+ double auxrtime2;
+ double sirentime;
+ double gdietime;
+ double eatpilltime;
  int gamestate=0;
  int a=3;
+ int eatingaux=0;
 
  int DeadInx=0;
  
@@ -135,11 +141,12 @@ struct PacMan{
 	int x,y;
 	int cx1,cy1,cx2,cy2;
 	int d=1;
-	int v=3;
+	int v=1;
 	int casillaF,casillaC;
 	int lives=4;
 	bool dying;
 	bool rampage=false;
+	bool comiendo=false;
 	int anim=0;
 	bool stuck=false;
 	esat::SpriteHandle sprite;
@@ -263,9 +270,13 @@ void CargaSprites(){
 	for(int i=0;i<4;i++)
 		Ojos[i]=esat::SubSprite(SpriteSheet,882+i*50,321,42,42);
 
-	for(int i=0;i<10;i++){
+	for(int i=0;i<10;i++)
 		PacManMuerte[i]=esat::SubSprite(SpriteSheet,682+i*49,47,48,42);
-	}
+	
+
+	for(int i=0;i<4;i++)
+		FantasmaHuye[i]=esat::SubSprite(SpriteSheet,682+i*51,320,42,42);
+
 }
 
 void InitPos(){
@@ -348,13 +359,15 @@ void PacManInput(){
 	}
 	else if(esat::IsSpecialKeyPressed(esat::kSpecialKey_Up)){
 		//printf("arriba: %d , %d\n",pacman.cx1,casilla[pacman.casillaF+1][pacman.casillaC].ax);
-		if(pacman.cx1==casilla[pacman.casillaF+1][pacman.casillaC].ax && casilla[pacman.casillaF+1][pacman.casillaC].tipo!=1)
+		if(pacman.cx1==casilla[pacman.casillaF-1][pacman.casillaC].ax && casilla[pacman.casillaF-1][pacman.casillaC].tipo!=1)
 			pacman.d = 3;
 	}
 	else if(esat::IsSpecialKeyPressed(esat::kSpecialKey_Down)){
-		//printf("abajo: %d , %d\n",pacman.cx1,casilla[pacman.casillaF-1][pacman.casillaC].ax);
-		if(pacman.cx1==casilla[pacman.casillaF-1][pacman.casillaC].ax && casilla[pacman.casillaF-1][pacman.casillaC].tipo!=1)
+		printf("abajo: %d , %d tipo: %d\n",pacman.cx1,casilla[pacman.casillaF-1][pacman.casillaC].ax,casilla[pacman.casillaF-1][pacman.casillaC].tipo);
+		if(pacman.cx1==casilla[pacman.casillaF+1][pacman.casillaC].ax && casilla[pacman.casillaF+1][pacman.casillaC].tipo!=1){
+			printf("llega");
 			pacman.d = 4;
+		}
 	}
 }
 
@@ -485,8 +498,11 @@ void ColPacManFantasmas(){
 				if(pacman.rampage){
 					fantasma[i].vivo=false;
 					AjusteCasilla(i);
+					canal.play(ghosteat);
+					gdietime=time+die.getLength()*1000;
 				}else{
 					--pacman.lives;
+					canal.play(die);
 					pacman.dying=true;
 
 				}
@@ -566,7 +582,7 @@ bool ColSwitch(int d, int a){
 		case 2:
 			if(Col(pacman.cx1 + a, pacman.cy1 + a, pacman.cx2 - a, pacman.cy2 - a, 
 				casilla[pacman.casillaF][pacman.casillaC-1].ax, casilla[pacman.casillaF][pacman.casillaC-1].ay, 
-				casilla[pacman.casillaF][pacman.casillaC-1].bx, casilla[pacman.casillaF][pacman.casillaC-1].by)){
+				casilla[pacman.casillaF][pacman.casillaC-1].bx-1, casilla[pacman.casillaF][pacman.casillaC-1].by)){
 					return true;
 			}else{
 				return false;
@@ -575,7 +591,7 @@ bool ColSwitch(int d, int a){
 		case 3:
 			if(Col(pacman.cx1 + a, pacman.cy1 + a, pacman.cx2 - a, pacman.cy2 - a, 
 				casilla[pacman.casillaF-1][pacman.casillaC].ax, casilla[pacman.casillaF-1][pacman.casillaC].ay, 
-				casilla[pacman.casillaF-1][pacman.casillaC].bx, casilla[pacman.casillaF-1][pacman.casillaC].by)){
+				casilla[pacman.casillaF-1][pacman.casillaC].bx, casilla[pacman.casillaF-1][pacman.casillaC].by-1)){
 					return true;
 			}else{
 				return false;
@@ -598,7 +614,7 @@ void PacManMov(){
 	switch (pacman.d){
 		
 		case 1:
-			if(ColSwitch(pacman.d) && (casilla[pacman.casillaF][pacman.casillaC+1].tipo==1 || casilla[pacman.casillaF][pacman.casillaC+1].tipo==4)){
+			if(ColSwitch(pacman.d) && (casilla[pacman.casillaF][pacman.casillaC+1].tipo==1)){
 			
 			}else{
 				pacman.x+=pacman.v;
@@ -607,7 +623,7 @@ void PacManMov(){
 			}
 			break;
 		case 2:
-			if(ColSwitch(pacman.d) && (casilla[pacman.casillaF][pacman.casillaC-1].tipo==1 || casilla[pacman.casillaF][pacman.casillaC-1].tipo==4)){
+			if(ColSwitch(pacman.d) && (casilla[pacman.casillaF][pacman.casillaC-1].tipo==1)){
 				
 			}else{
 				pacman.x-=pacman.v;
@@ -616,7 +632,7 @@ void PacManMov(){
 			}
 			break;
 		case 3:
-			if(ColSwitch(pacman.d) && (casilla[pacman.casillaF-1][pacman.casillaC].tipo==1 || casilla[pacman.casillaF-1][pacman.casillaC].tipo==4)){
+			if(ColSwitch(pacman.d) && (casilla[pacman.casillaF-1][pacman.casillaC].tipo==1)){
 				
 			}else{
 				pacman.y-=pacman.v;
@@ -625,7 +641,7 @@ void PacManMov(){
 			}
 			break;
 		case 4:
-			if(ColSwitch(pacman.d) && (casilla[pacman.casillaF+1][pacman.casillaC].tipo==1 || casilla[pacman.casillaF+1][pacman.casillaC].tipo==4)){
+			if(ColSwitch(pacman.d) && (casilla[pacman.casillaF+1][pacman.casillaC].tipo==1)){
 				
 			}else{
 				pacman.y+=pacman.v;
@@ -761,9 +777,12 @@ void PacManDots(){
 				pacman.rampage=true;
 
 				auxrtime=time+4000;
+				auxrtime2=auxrtime-2000;
 				score+=50;
 				casilla[pacman.casillaF][pacman.casillaC+1].tipo=0;
 				--Dots;
+				canal.play(eatpill);
+				eatpilltime=time+eatpill.getLength()*1000;
 			}
 					
 			break;
@@ -777,8 +796,11 @@ void PacManDots(){
 				pacman.rampage=true;
 	
 				auxrtime=time+4000;
+				auxrtime2=auxrtime-2000;
 				score+=50;
 				casilla[pacman.casillaF][pacman.casillaC-1].tipo=0;
+				canal.play(eatpill);
+				eatpilltime=time+eatpill.getLength()*1000;
 			}
 			break;
 		case 3:
@@ -792,8 +814,11 @@ void PacManDots(){
 				pacman.rampage=true;
 		
 				auxrtime=time+4000;
+				auxrtime2=auxrtime-2000;
 				score+=50;
 				casilla[pacman.casillaF-1][pacman.casillaC].tipo=0;
+				canal.play(eatpill);
+				eatpilltime=time+eatpill.getLength()*1000;
 			}
 			break;
 		case 4:
@@ -806,8 +831,11 @@ void PacManDots(){
 				pacman.rampage=true;
 
 				auxrtime=time+4000;
+				auxrtime2=auxrtime-2000;
 				score+=50;
 				casilla[pacman.casillaF+1][pacman.casillaC].tipo=0;
+				canal.play(eatpill);
+				eatpilltime=time+eatpill.getLength()*1000;
 			}
 			break;
 }
@@ -829,12 +857,21 @@ void PacManAnim(){
 void AnimFantasmas(){
 
 	for(int i=0;i<4;i++){
-		if(fantasma[i].vivo){
-			fantasma[i].anim=framesAnim%2;
+		fantasma[i].anim=framesAnim%2;
+		if(fantasma[i].vivo && pacman.rampage){
+			if(time<auxrtime2)
+				fantasma[i].sprite=FantasmaHuye[fantasma[i].anim];
+			else{
+				if(frames%2==0)
+					fantasma[i].sprite=FantasmaHuye[fantasma[i].anim+2];
+				else
+					fantasma[i].sprite=FantasmaHuye[fantasma[i].anim];
+			}
+
+		}else if(fantasma[i].vivo){
 			fantasma[i].sprite=Fantasmas[i][fantasma[i].anim + (fantasma[i].d-1)*2];
-		}else{
+		}else 
 			fantasma[i].sprite=Ojos[fantasma[i].d-1];
-		}
 	}	
 
 }
@@ -860,7 +897,7 @@ void DrawDots(){
 
 void MuestraPacMan(){
 
-	DrawDots();
+	
 	esat::DrawSprite(pacman.sprite,pacman.x,pacman.y+48);
 	
 
@@ -1028,23 +1065,55 @@ int CasillaSiguiente(){
 
 void Movimiento(){
 
-	if(CasillaSiguiente()==0)
-		a=3;
-	else if(CasillaSiguiente()==2 || CasillaSiguiente()==3)
-		a=2;
-
-	for(int i=0;i<a;i++){
-
-		PacManMov();
+	if(CasillaSiguiente()==0){
+		for(int i=0;i<3;i++){
+			UpdatePacManCasilla();
+			PacManInput();
+			PacManMov();
+			PacManDots();
+		}
+	}else{
+		for(int i=0;i<2 ;i++){
+			UpdatePacManCasilla();
+			PacManInput();
+			PacManMov();
+			PacManDots();
+		}
 	}
-	for(int i=0;i<4;i++){
-		SalidaInicial();
-		CarcelDir();
-		FantasmasDir();	
-		FantasmaMuerteDir();
-		FantasmasMov();
+
+}
+
+void CargaAudio(){
+	opening.load("./Recursos/Audio/opening_song.ogg");
+	eat.load("./Recursos/Audio/eating.ogg");
+	ghosteat.load("././Recursos/Audio/eatghost.ogg");
+	eatpill.load("./Recursos/Audio/eatpill.ogg");
+	siren.load("./Recursos/Audio/siren.ogg");
+	die.load("./Recursos/Audio/die.ogg");
+}
+
+void AudioHandle(){
+
+	if(time>gdietime)
+		ghosteat.stop();
+
+	if(time>eatpilltime)
+		eatpill.stop();
+
+	if(pacman.dying){
+		canal.play(die);
 	}
-	
+
+	if ((CasillaSiguiente()==2 || CasillaSiguiente()==3) && eatingaux==0){
+		canal.setLooping(canal.play(eat),true);
+		eatingaux=1;
+	}
+	else if (CasillaSiguiente()==0 && eatingaux==1){
+		eat.stop();
+		eatingaux=0;
+	}
+ 
+
 }
 
 /*void ColMuros(){
@@ -1053,7 +1122,7 @@ void Movimiento(){
 
 int esat::main(int argc, char **argv) {
  
-  double current_time,last_time;
+  double current_time,last_time,openingTime;
   unsigned char fps=60;
 
   int pacmananim=1;
@@ -1064,8 +1133,7 @@ int esat::main(int argc, char **argv) {
   //Inicialicización sistema audio.
   canal.init();
   //Carga audio en cada variable canal audio.
-  ejemplo1.load("./Recursos/Audio/ogg/dp_frogger_extra.ogg");
-  ejemplo2.load("./Recursos/Audio/ogg/dp_frogger_start.ogg");
+
  
   esat::WindowInit(672,840);
   WindowSetMouseVisibility(true);
@@ -1075,15 +1143,16 @@ int esat::main(int argc, char **argv) {
   InitFantasmas();
   InitPos();
   InitCasillas();
+  CargaAudio();
   f1time=esat::Time()+5000;
   f2time=esat::Time()+15000;
   
-  /*for(int i=0;i<31;i++){
+  for(int i=0;i<31;i++){
 	for(int j=0;j<28;j++){
 		printf("%d", casilla[i][j].tipo);		
 	}
 	printf("\n");
-  }*/
+  }
   
 
   while(esat::WindowIsOpened() && !esat::IsSpecialKeyDown(esat::kSpecialKey_Escape)) {
@@ -1103,8 +1172,12 @@ int esat::main(int argc, char **argv) {
   			if(frames%20 > 5)
   				esat::DrawText(250,500, "PRESS SPACE");
   			if(esat::IsSpecialKeyDown(esat::kSpecialKey_Space)){
-  				gamestate=1;
+  				gamestate=4;
   				InitGame();
+  				openingTime=time+opening.getLength()*1000;
+  				printf("tamaño audio: %f\n", opening.getLength());
+  				canal.play(opening);
+ 
   			}
 		break;
   			
@@ -1114,17 +1187,19 @@ int esat::main(int argc, char **argv) {
 			if(pacman.dying){
 				AnimMuerte();
 			}else{
+				die.stop();
 				Anim();
-			    PacManInput();
-				UpdatePacManCasilla();
+			   
+				
 				UpdateFantasmasCasilla();
 				Pasillo();
 				SalidaInicial();
 				CarcelDir();
 				FantasmasDir();	
 				FantasmaMuerteDir();
-				PacManMov();
 				
+				Movimiento();
+					
 				FantasmasMov();	
 
 				ColPacManFantasmas();
@@ -1132,14 +1207,18 @@ int esat::main(int argc, char **argv) {
 				esat::DrawSprite(Mapa,0,48);
 				esat::DrawSetStrokeColor(255,255,255);
 				//DrawMatriz();
+					DrawDots();
 				MuestraPacMan();
 				MostrarFantasmas();
 				MuestraVidas();
+
 				//DrawPacManCol();
-				PacManDots();
+				
 				WinCondition();
 				RampageTime();
 				DrawScore();
+				AudioHandle();
+				printf("pacman: (%d,%d) casilla %d,%d:(%d,%d)",pacman.cx1,pacman.cy1,pacman.casillaF,pacman.casillaC,casilla[pacman.casillaF][pacman.casillaC].ax,casilla[pacman.casillaF][pacman.casillaC].ay);
 			}
 			
 		break;
@@ -1154,9 +1233,11 @@ int esat::main(int argc, char **argv) {
   			if(frames%20 > 5)
   				esat::DrawText(150,500, "PRESS SPACE TO PLAY AGAIN");
   			if(esat::IsSpecialKeyDown(esat::kSpecialKey_Space)){
-				gamestate=1;
+				gamestate=4;
 				InitGame();
 				ResetGame();
+				openingTime=time+opening.getLength();
+				canal.play(opening);
   			}
 		break;
 		case 3:
@@ -1173,11 +1254,36 @@ int esat::main(int argc, char **argv) {
   			if(frames%20 > 5)
   				esat::DrawText(150,500, "PRESS SPACE TO PLAY AGAIN");
   			if(esat::IsSpecialKeyDown(esat::kSpecialKey_Space)){
-				gamestate=1;
+				gamestate=4;
 				InitGame();
 				ResetGame();
+				openingTime=time+opening.getLength()*1000;
+				canal.play(opening);
+				
   			}
 		break;
+		case 4:
+			
+  			if(time>openingTime){
+
+
+  				gamestate=1;
+  				canal.setLooping(canal.play(siren),true);
+  				//canal.play(siren);
+  			}
+  			else{
+
+				esat::DrawSprite(Mapa,0,48);
+				
+				MuestraPacMan();
+				MostrarFantasmas();
+				MuestraVidas();
+				DrawDots();
+				DrawScore();
+  			}
+
+  			
+
 	}
 
 
